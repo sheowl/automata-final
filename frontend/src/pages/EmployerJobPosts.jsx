@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useCompany } from '../context/CompanyContext';
-import { useTags } from '../context/TagsContext'; // Import Tags Context
+import { useAuth } from "../hooks/useMockData";
+import { useEmployerData } from "../hooks/useEmployerData";
+import { useTags } from "../hooks/useMockData"; // Import Tags Context
 import { useNavigate } from "react-router-dom";
 import JobCard from '../components/JobCard.jsx';
 import EmployerSideBar from "../components/EmployerSideBar";
@@ -69,26 +69,19 @@ const EmployerJobPosts = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Use AuthContext for authentication
+  // Use EmployerData hook for all employer operations
   const { 
-    isEmployer, 
-    isAuthenticated, 
-    user,
-    loading // ⭐ ADD loading
-  } = useAuth();
-
-  // Use CompanyContext for company operations
-  const { 
-    getCompanyJobs, 
-    createJob, 
-    updateJob, 
-    deleteJob,
+    getCompanyJobs,
+    jobPosts: companyJobs,
+    createJobPost: createJob, 
+    updateJobPost: updateJob, 
+    deleteJobPost: deleteJob,
     getCompanyProfile,
     companyProfile,
     loading: companyLoading,
     error: companyError,
     clearError
-  } = useCompany();
+  } = useEmployerData();
 
   // Use TagContext for tag operations
   const {
@@ -103,43 +96,42 @@ const EmployerJobPosts = () => {
     getCategoryNameById
   } = useTags();
 
-  // Update the useEffect to wait for auth loading
+  // Load data on mount
   useEffect(() => {
-    if (!loading) { // ⭐ Only run when AuthContext is done loading
-      checkAuthAndLoadData();
-    }
-  }, [loading]); // ⭐ Add loading as dependency
+    loadJobsAndCompanyData();
+  }, [companyJobs]); // Add companyJobs as dependency
 
-  const checkAuthAndLoadData = async () => {
+  const loadJobsAndCompanyData = async () => {
     try {
-      console.log("🔍 EmployerJobPosts Auth check - Loading:", loading, "Authenticated:", isAuthenticated(), "Employer:", isEmployer());
+      setIsLoading(true);
+      // Use companyJobs from context and map them
+      const company = companyProfile || await import('../data/mockData').then(module => module.mockCompanyData);
       
-      // ⭐ Wait for auth context to finish loading
-      if (loading) {
-        console.log("⏳ Auth context still loading, waiting...");
-        return;
-      }
-
-      // Check if user is authenticated and is an employer
-      if (!isAuthenticated()) {
-        console.log("❌ Not authenticated, redirecting to sign-in");
-        navigate('/employer-sign-in');
-        return;
-      }
-
-      if (!isEmployer()) {
-        console.log("❌ Not an employer, redirecting to sign-in");
-        navigate('/employer-sign-in');
-        return;
-      }
-
-      console.log("✅ Auth check passed, loading jobs data");
-      // Load jobs and company data
-      await loadJobsAndCompanyData();
+      // Map the jobs to include tag names
+      const mappedJobs = companyJobs.map(job => {
+        const tagNames = getTagNamesByIds(job.job_tags || []);
+        return {
+          ...job,
+          id: job.job_id || job.id,
+          jobTitle: job.job_title || job.jobTitle,
+          companyName: company.company_name || 'Company Name',
+          location: company.location || 'Location',
+          tag_names: tagNames,
+          category: getCategoryNameById(job.required_category_id) || 'General'
+        };
+      });
       
+      setJobPosts(mappedJobs);
+      setTotalJobs(mappedJobs.length);
+      setCompanyInfo({
+        name: company.company_name || 'Company Name',
+        type: company.company_size || 'Company Type',
+        location: company.location || 'Company Location',
+      });
     } catch (error) {
-      console.error("Error checking auth or loading data:", error);
+      console.error("Error loading data:", error);
       setError("Failed to load job posts. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -220,58 +212,6 @@ const EmployerJobPosts = () => {
     return mappedJob;
   };
 
-  const loadJobsAndCompanyData = async () => {
-    try {
-      setIsLoading(true);
-      setError("");
-      clearError(); // Clear any previous company errors
-
-      // Load company jobs and profile in parallel
-      const [jobsResponse, profileResponse] = await Promise.all([
-        getCompanyJobs(),
-        getCompanyProfile()
-      ]);
-
-      console.log('Jobs response:', jobsResponse);
-      console.log('Profile response:', profileResponse);
-
-      // Update jobs data with new mapping
-      if (jobsResponse.jobs) {
-        const mappedJobs = jobsResponse.jobs.map(job => mapJobData(job, jobsResponse.company_info || profileResponse));
-        setJobPosts(mappedJobs);
-        setTotalJobs(jobsResponse.total || mappedJobs.length);
-        
-        // Update company info from jobs response if available
-        if (jobsResponse.company_info) {
-          setCompanyInfo({
-            name: jobsResponse.company_info.company_name || 'Company Name',
-            type: formatCompanyType(jobsResponse.company_info.company_size) || 'Company Type',
-            location: jobsResponse.company_info.location || 'Company Location',
-          });
-        }
-      } else if (Array.isArray(jobsResponse)) {
-        const mappedJobs = jobsResponse.map(job => mapJobData(job, profileResponse));
-        setJobPosts(mappedJobs);
-        setTotalJobs(mappedJobs.length);
-      }
-
-      // Update company info from profile if not already set
-      if (profileResponse && !jobsResponse.company_info) {
-        setCompanyInfo({
-          name: profileResponse.company_name || 'Company Name',
-          type: formatCompanyType(profileResponse.company_size) || 'Company Type',
-          location: profileResponse.location || 'Company Location',
-        });
-      }
-
-    } catch (error) {
-      console.error("Error loading jobs and company data:", error);
-      setError(error.message || "Failed to load job posts. Please try refreshing the page.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const formatCompanyType = (companySize) => {
     if (!companySize) return "Company";
     
@@ -299,11 +239,8 @@ const EmployerJobPosts = () => {
       
       console.log('Job created successfully:', newJob);
       
-      // Close modal
+      // Close modal - the useEffect will automatically reload
       setShowModal(false);
-      
-      // Reload jobs to get updated list
-      await loadJobsAndCompanyData();
       
     } catch (error) {
       console.error("Error creating job:", error);
@@ -434,6 +371,46 @@ const EmployerJobPosts = () => {
     });
   };
 
+  const handleArchiveJob = async (jobId) => {
+    try {
+      console.log('Archiving job:', jobId);
+      // For static app, just remove from display
+      setJobPosts(jobPosts.map(job => 
+        job.id === jobId ? { ...job, status: 'archived' } : job
+      ));
+    } catch (error) {
+      console.error('Error archiving job:', error);
+      setError('Failed to archive job');
+    }
+  };
+
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm('Are you sure you want to delete this job posting?')) {
+      return;
+    }
+    
+    try {
+      console.log('Deleting job:', jobId);
+      await deleteJob(jobId);
+      await loadJobsAndCompanyData();
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      setError('Failed to delete job');
+    }
+  };
+
+  const handleRestoreJob = async (jobId) => {
+    try {
+      console.log('Restoring job:', jobId);
+      setJobPosts(jobPosts.map(job => 
+        job.id === jobId ? { ...job, status: 'active' } : job
+      ));
+    } catch (error) {
+      console.error('Error restoring job:', error);
+      setError('Failed to restore job');
+    }
+  };
+
   const handleDropdownToggle = (jobId) => {
     setOpenDropdownId(openDropdownId === jobId ? null : jobId);
   };
@@ -511,7 +488,7 @@ const EmployerJobPosts = () => {
   };
 
   // Loading state (combine all loading states)
-  if (loading || isLoading || companyLoading || tagLoading) {
+  if (isLoading || companyLoading || tagLoading) {
     return (
       <div className="min-h-screen bg-[#9B1C31] flex flex-col">
         <EmployerSideBar />
@@ -520,7 +497,7 @@ const EmployerJobPosts = () => {
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9B1C31] mx-auto mb-4"></div>
               <p className="text-[#6B7280] text-lg">
-                {loading ? 'Verifying authentication...' : 'Loading job posts...'}
+                Loading job posts...
               </p>
             </div>
           </div>
@@ -555,7 +532,6 @@ const EmployerJobPosts = () => {
       <div className="flex flex-col gap-24 items-start">
         <div className="font-semibold text-[#6B7280] mb-1 mt-2">By Modality</div>
         <div className="font-semibold text-[#6B7280] mb-1 mt-0">By Work Type</div>
-        <div className="font-semibold text-[#6B7280] mb-1 mt-10">By Status</div>
       </div>
       <div className="flex flex-col gap-1 justify-start items-start">
         {/* By Modality */}
@@ -583,19 +559,6 @@ const EmployerJobPosts = () => {
             {opt.label}
           </div>
         ))}
-        <div className="h-2" />
-        {/* By Status */}
-        {filterOptions[2].options.map(opt => (
-          <div
-            key={opt.value}
-            className="p-1 mt-1 rounded cursor-pointer transition-colors"
-            style={selectedStatus === opt.value ? selectedOptionStyle : {}}
-            data-selected={selectedStatus === opt.value}
-            onClick={() => setSelectedStatus(selectedStatus === opt.value ? null : opt.value)}
-          >
-            {opt.label}
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -611,16 +574,6 @@ const EmployerJobPosts = () => {
     );
   }
 
-  // Show error if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-500 font-semibold text-lg text-center">
-          Please log in to access this page.
-        </div>
-      </div>
-    );
-  }
 
   // Show error if company data failed to load
   if (companyError) {
@@ -699,7 +652,8 @@ const EmployerJobPosts = () => {
             getFilteredAndSortedJobs().map(job => (                
             <JobCard
                 key={job.id}
-                {...job} // Pass all job properties including applicantCount and tag data
+                {...job}
+                createdAt={job.created_at} // Map created_at to createdAt for time display
                 onViewDetails={handleViewJobDetails}
                 onViewApplicants={handleViewApplicants}
                 dropdownOpen={openDropdownId === job.id}
@@ -740,7 +694,6 @@ const EmployerJobPosts = () => {
           onClose={() => setShowModal(false)}
           onSave={handleAddJob}
           companyData={companyProfile} // Pass company data as prop
-          userData={user} // Pass user data as prop
         />
         
         <JobEditPost
@@ -755,7 +708,7 @@ const EmployerJobPosts = () => {
           open={postingDetailsOpen}
           onClose={() => setPostingDetailsOpen(false)}
           job={selectedJob} // This now includes applicantCount and tag data
-          onEdit={handleEditJob}
+          onEdit={handleEditJob} // Pass the edit handler
         />
       </div>
     </div>

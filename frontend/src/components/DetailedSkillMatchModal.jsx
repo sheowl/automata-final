@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useTags } from '../context/TagsContext';
+import React, { useState } from "react";
+import { useTags } from "../hooks/useMockData";
 
 const DetailedSkillMatchModal = ({ 
   isOpen, 
@@ -15,15 +15,15 @@ const DetailedSkillMatchModal = ({
   if (!isOpen) return null;
 
   // Color scheme based on user type
-  const primaryColor = isEmployer ? '#9B1C31' : '#047857';
-  const primaryColorDark = isEmployer ? '#7D1628' : '#065F46';
+  const primaryColor = isEmployer ? "#9B1C31" : "#047857";
+  const primaryColorDark = isEmployer ? "#7D1628" : "#065F46";
 
   // Safely handle both tag IDs (numbers) and tag names (strings)
   const safeJobTags = Array.isArray(jobTags) ? jobTags.filter(tag => tag != null) : [];
   const safeApplicantTags = Array.isArray(applicantTags) ? applicantTags.filter(tag => tag != null) : [];
   
-  const isJobTagIds = safeJobTags.length > 0 && typeof safeJobTags[0] === 'number';
-  const isApplicantTagIds = safeApplicantTags.length > 0 && typeof safeApplicantTags[0] === 'number';
+  const isJobTagIds = safeJobTags.length > 0 && typeof safeJobTags[0] === "number";
+  const isApplicantTagIds = safeApplicantTags.length > 0 && typeof safeApplicantTags[0] === "number";
   
   const jobTagNames = isJobTagIds ? getTagNamesByIds(safeJobTags) : safeJobTags;
   const applicantTagNames = isApplicantTagIds ? getTagNamesByIds(safeApplicantTags) : safeApplicantTags;
@@ -35,9 +35,9 @@ const DetailedSkillMatchModal = ({
 
   // Determine states
   const getCurrentState = () => {
-    if (matchScore >= 75) return 'matched';
-    if (matchScore >= 50) return 'partially_matched';
-    return 'rejected';
+    if (matchScore >= 75) return "matched";
+    if (matchScore >= 50) return "partially_matched";
+    return "rejected";
   };
 
   const currentState = getCurrentState();
@@ -47,41 +47,41 @@ const DetailedSkillMatchModal = ({
   // State transition details
   const stateTransitions = [
     {
-      id: 'initial',
-      name: 'q0 (Initial)',
-      color: 'gray',
-      description: 'Starting state before processing any skills',
+      id: "initial",
+      name: "q0 (Initial)",
+      color: "gray",
+      description: "Starting state before processing any skills",
       tags: [],
       selfLoop: irrelevantApplicantTags,
-      selfLoopLabel: 'Irrelevant Skills'
+      selfLoopLabel: "Irrelevant Skills"
     },
     {
-      id: 'rejected',
-      name: 'qr (Rejected)',
-      color: 'red',
-      description: 'Skills do not meet minimum requirements',
+      id: "rejected",
+      name: "qr (Rejected)",
+      color: "red",
+      description: "Skills do not meet minimum requirements",
       tags: unmatchedJobTags,
       selfLoop: [],
-      selfLoopLabel: 'During Cooldown',
+      selfLoopLabel: "During Cooldown",
       isFinal: true
     },
     {
-      id: 'partially_matched',
-      name: 'q1 (Partially Matched)',
-      color: 'yellow',
-      description: 'Some required skills matched',
+      id: "partially_matched",
+      name: "q1 (Partially Matched)",
+      color: "yellow",
+      description: "Some required skills matched",
       tags: hasPartialMatch ? matchedTags : [],
-      selfLoop: hasPartialMatch ? ['Additional matching skills'] : [],
-      selfLoopLabel: 'More Skills'
+      selfLoop: hasPartialMatch ? ["Additional matching skills"] : [],
+      selfLoopLabel: "More Skills"
     },
     {
-      id: 'matched',
-      name: 'q2 (Matched)',
-      color: currentState === 'matched' ? 'green' : 'gray',
-      description: 'All or most required skills matched',
+      id: "matched",
+      name: "q2 (Matched)",
+      color: currentState === "matched" ? "green" : "gray",
+      description: "All or most required skills matched",
       tags: hasFullMatch ? matchedTags : [],
-      selfLoop: hasFullMatch ? ['Any additional skills'] : [],
-      selfLoopLabel: 'Any Skill',
+      selfLoop: hasFullMatch ? ["Any additional skills"] : [],
+      selfLoopLabel: "Any Skill",
       isFinal: true
     }
   ];
@@ -89,32 +89,32 @@ const DetailedSkillMatchModal = ({
   const getColorClasses = (color) => {
     const classes = {
       gray: {
-        bg: 'bg-gray-100',
-        border: 'border-gray-400',
-        text: 'text-gray-700',
-        tag: 'bg-gray-200 text-gray-700',
-        arrow: 'text-gray-500'
+        bg: "bg-gray-100",
+        border: "border-gray-400",
+        text: "text-gray-700",
+        tag: "bg-gray-200 text-gray-700",
+        arrow: "text-gray-500"
       },
       red: {
-        bg: 'bg-red-50',
-        border: 'border-red-500',
-        text: 'text-red-700',
-        tag: 'bg-red-100 text-red-700 border-red-300',
-        arrow: 'text-red-500'
+        bg: "bg-red-50",
+        border: "border-red-500",
+        text: "text-red-700",
+        tag: "bg-red-100 text-red-700 border-red-300",
+        arrow: "text-red-500"
       },
       yellow: {
-        bg: 'bg-yellow-50',
-        border: 'border-yellow-500',
-        text: 'text-yellow-700',
-        tag: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-        arrow: 'text-yellow-500'
+        bg: "bg-yellow-50",
+        border: "border-yellow-500",
+        text: "text-yellow-700",
+        tag: "bg-yellow-100 text-yellow-700 border-yellow-300",
+        arrow: "text-yellow-500"
       },
       green: {
-        bg: 'bg-green-50',
-        border: 'border-green-500',
-        text: 'text-green-700',
-        tag: 'bg-green-100 text-green-700 border-green-300',
-        arrow: 'text-green-500'
+        bg: "bg-green-50",
+        border: "border-green-500",
+        text: "text-green-700",
+        tag: "bg-green-100 text-green-700 border-green-300",
+        arrow: "text-green-500"
       }
     };
     return classes[color];
@@ -142,7 +142,7 @@ const DetailedSkillMatchModal = ({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-8">
           {/* Legend */}
-          <div className={`mb-8 ${isEmployer ? 'bg-rose-50 border-[#9B1C31]' : 'bg-emerald-50 border-[#047857]'} border-l-4 p-4 rounded`}>
+          <div className={`mb-8 ${isEmployer ? "bg-rose-50 border-[#9B1C31]" : "bg-emerald-50 border-[#047857]"} border-l-4 p-4 rounded`}>
             <div className="flex items-center gap-2 mb-2">
               <i className="bi bi-info-circle-fill" style={{ color: primaryColor }} />
               <span className="font-bold" style={{ color: primaryColor }}>How to Read This Diagram</span>
@@ -150,9 +150,9 @@ const DetailedSkillMatchModal = ({
             <ul className="text-sm text-gray-700 space-y-1 ml-6">
               <li>• <strong>States (circles):</strong> Represent different matching stages</li>
               <li>• <strong>Arrows:</strong> Show transitions between states based on skills</li>
-              <li>• <strong>Self-loops:</strong> Skills that don't change the current state</li>
+              <li>• <strong>Self-loops:</strong> Skills that don"t change the current state</li>
               <li>• <strong>Green tags:</strong> Skills that matched job requirements</li>
-              <li>• <strong>Red tags:</strong> Required skills you're missing</li>
+              <li>• <strong>Red tags:</strong> Required skills you"re missing</li>
               <li>• <strong>Gray tags:</strong> Your skills not relevant to this job</li>
             </ul>
           </div>
@@ -200,10 +200,10 @@ const DetailedSkillMatchModal = ({
                 
                 <HorizontalStateNode
                   state={stateTransitions[0]}
-                  isActive={currentState === 'initial'}
-                  onClick={() => setSelectedState('initial')}
-                  isSelected={selectedState === 'initial'}
-                  colorClasses={getColorClasses('gray')}
+                  isActive={currentState === "initial"}
+                  onClick={() => setSelectedState("initial")}
+                  isSelected={selectedState === "initial"}
+                  colorClasses={getColorClasses("gray")}
                 />
               </div>
 
@@ -237,10 +237,10 @@ const DetailedSkillMatchModal = ({
                 </div>
                 <HorizontalStateNode
                   state={stateTransitions[2]}
-                  isActive={currentState === 'partially_matched'}
-                  onClick={() => setSelectedState('partially_matched')}
-                  isSelected={selectedState === 'partially_matched'}
-                  colorClasses={getColorClasses('yellow')}
+                  isActive={currentState === "partially_matched"}
+                  onClick={() => setSelectedState("partially_matched")}
+                  isSelected={selectedState === "partially_matched"}
+                  colorClasses={getColorClasses("yellow")}
                 />
               </div>
 
@@ -274,10 +274,10 @@ const DetailedSkillMatchModal = ({
                 </div>
                 <HorizontalStateNode
                   state={stateTransitions[3]}
-                  isActive={currentState === 'matched'}
-                  onClick={() => setSelectedState('matched')}
-                  isSelected={selectedState === 'matched'}
-                  colorClasses={getColorClasses('green')}
+                  isActive={currentState === "matched"}
+                  onClick={() => setSelectedState("matched")}
+                  isSelected={selectedState === "matched"}
+                  colorClasses={getColorClasses("green")}
                 />
               </div>
             </div>
@@ -306,10 +306,10 @@ const DetailedSkillMatchModal = ({
                 </div>
                 <HorizontalStateNode
                   state={stateTransitions[1]}
-                  isActive={currentState === 'rejected'}
-                  onClick={() => setSelectedState('rejected')}
-                  isSelected={selectedState === 'rejected'}
-                  colorClasses={getColorClasses('red')}
+                  isActive={currentState === "rejected"}
+                  onClick={() => setSelectedState("rejected")}
+                  isSelected={selectedState === "rejected"}
+                  colorClasses={getColorClasses("red")}
                 />
               </div>
 
@@ -385,23 +385,23 @@ const DetailedSkillMatchModal = ({
 const HorizontalStateNode = ({ state, isActive, onClick, isSelected, colorClasses }) => (
   <div
     onClick={onClick}
-    className={`cursor-pointer transition-all duration-300 ${isSelected ? 'scale-105' : ''}`}
+    className={`cursor-pointer transition-all duration-300 ${isSelected ? "scale-105" : ""}`}
   >
     <div className="flex flex-col items-center w-48">
       {/* Circle */}
       <div
         className={`relative w-24 h-24 rounded-full border-4 flex items-center justify-center ${
-          isActive ? colorClasses.border : 'border-gray-300'
-        } ${isActive ? colorClasses.bg : 'bg-white'} ${
-          state.isFinal ? 'ring-4 ring-offset-2' : ''
-        } ${isActive && state.isFinal ? `ring-${colorClasses.border}` : 'ring-transparent'} shadow-lg`}
+          isActive ? colorClasses.border : "border-gray-300"
+        } ${isActive ? colorClasses.bg : "bg-white"} ${
+          state.isFinal ? "ring-4 ring-offset-2" : ""
+        } ${isActive && state.isFinal ? `ring-${colorClasses.border}` : "ring-transparent"} shadow-lg`}
       >
-        <span className={`text-xl font-bold ${isActive ? colorClasses.text : 'text-gray-400'}`}>
-          {state.name.split(' ')[0]}
+        <span className={`text-xl font-bold ${isActive ? colorClasses.text : "text-gray-400"}`}>
+          {state.name.split(" ")[0]}
         </span>
         {isActive && (
           <div className="absolute -top-2 -right-2">
-            <div className="w-6 h-6 rounded-full flex items-center justify-center animate-pulse" style={{ backgroundColor: isActive.primaryColor || '#047857' }}>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center animate-pulse" style={{ backgroundColor: isActive.primaryColor || "#047857" }}>
               <i className="bi bi-circle-fill text-white text-xs" />
             </div>
           </div>
@@ -421,7 +421,7 @@ const HorizontalStateNode = ({ state, isActive, onClick, isSelected, colorClasse
           <div className="flex flex-wrap gap-1 justify-center max-w-40">
             {state.tags.slice(0, 3).map((tag, idx) => (
               <span key={idx} className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${colorClasses.tag}`}>
-                {tag.length > 12 ? tag.substring(0, 12) + '...' : tag}
+                {tag.length > 12 ? tag.substring(0, 12) + "..." : tag}
               </span>
             ))}
             {state.tags.length > 3 && (
@@ -439,10 +439,10 @@ const HorizontalStateNode = ({ state, isActive, onClick, isSelected, colorClasse
 // Horizontal Arrow Component
 const HorizontalArrow = ({ label, color, tags }) => {
   const colorMap = {
-    red: { stroke: '#EF4444', text: 'text-red-600', bg: 'bg-red-50', border: 'border-red-300' },
-    yellow: { stroke: '#F5B041', text: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-300' },
-    green: { stroke: '#27AE60', text: 'text-green-600', bg: 'bg-green-50', border: 'border-green-300' },
-    blue: { stroke: '#047857', text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-300' }
+    red: { stroke: "#EF4444", text: "text-red-600", bg: "bg-red-50", border: "border-red-300" },
+    yellow: { stroke: "#F5B041", text: "text-yellow-600", bg: "bg-yellow-50", border: "border-yellow-300" },
+    green: { stroke: "#27AE60", text: "text-green-600", bg: "bg-green-50", border: "border-green-300" },
+    blue: { stroke: "#047857", text: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-300" }
   };
 
   const colors = colorMap[color];
@@ -477,7 +477,7 @@ const HorizontalArrow = ({ label, color, tags }) => {
                 key={idx}
                 className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${colors.text}`}
               >
-                {tag.length > 10 ? tag.substring(0, 10) + '...' : tag}
+                {tag.length > 10 ? tag.substring(0, 10) + "..." : tag}
               </span>
             ))}
           </div>
@@ -492,9 +492,9 @@ const SummaryCard = ({ title, count, icon, color, items }) => {
   const [expanded, setExpanded] = useState(false);
 
   const colorClasses = {
-    green: 'bg-green-50 border-green-200 text-green-700',
-    red: 'bg-red-50 border-red-200 text-red-700',
-    gray: 'bg-gray-50 border-gray-200 text-gray-700'
+    green: "bg-green-50 border-green-200 text-green-700",
+    red: "bg-red-50 border-red-200 text-red-700",
+    gray: "bg-gray-50 border-gray-200 text-gray-700"
   };
 
   return (
@@ -511,7 +511,7 @@ const SummaryCard = ({ title, count, icon, color, items }) => {
           onClick={() => setExpanded(!expanded)}
           className="text-xs underline hover:no-underline"
         >
-          {expanded ? 'Hide' : 'Show'} details
+          {expanded ? "Hide" : "Show"} details
         </button>
       )}
       {expanded && (

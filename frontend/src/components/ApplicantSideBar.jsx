@@ -1,20 +1,17 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import TugmaLogoApplicant from '../assets/TugmaLogo.svg';
-import { useAuth } from "../context/AuthContext";
+import React from "react";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../hooks/useMockData";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../services/supabaseClient";
 
 const logout = async () => {
-  await supabase.auth.signOut();
   localStorage.clear();
-  window.location.href = "/applicant-sign-in"; // Hard reload
+  window.location.href = "/applicant-sign-in";
 };
 
 const navItems = [
-  { name: 'Browse Jobs', icon: 'bi-search', path: '/applicantbrowsejobs' },
-  { name: 'Applications', icon: 'bi-briefcase-fill', path: '/applicantapplications' },
-  { name: 'Profile', icon: 'bi-person-fill', path: '/applicantprofile' },
+  { name: "Browse Jobs", icon: "bi-search", path: "/applicantbrowsejobs" },
+  { name: "Applications", icon: "bi-briefcase-fill", path: "/applicantapplications" },
+  { name: "Profile", icon: "bi-person-fill", path: "/applicantprofile" },
 ];
 
 const ApplicantSideBar = () => {
@@ -28,13 +25,6 @@ const ApplicantSideBar = () => {
 
   return (
     <div className="w-full bg-[#047857] flex items-center justify-between px-8 py-6">
-      {/* Logo */}
-      <img
-        src={TugmaLogoApplicant}
-        alt="Tugma Logo"
-        className="w-[160px] h-[40px]"
-      />
-
       {/* Navigation */}
       <nav className="flex-1 flex justify-center">
         <ul className="flex gap-6 font-bold items-center">
@@ -44,7 +34,7 @@ const ApplicantSideBar = () => {
               key={item.name}
               className={({ isActive }) =>
                 `flex items-center gap-2 px-6 py-3 rounded-[10px] text-base cursor-pointer transition-colors duration-150 ${
-                  isActive ? 'bg-white text-[#047857]' : 'text-white hover:bg-[#065F46]'
+                  isActive ? "bg-white text-[#047857]" : "text-white hover:bg-[#065F46]"
                 }`
               }
             >

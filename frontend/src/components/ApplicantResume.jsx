@@ -1,6 +1,5 @@
 import React from "react";
 import EmployerSideBar from "../components/EmployerSideBar";
-import ApplicantDashLogo from "../assets/ApplicantDashLogo.svg";
 
 function ApplicantResume() {
   // Temporary user data for dynamic rendering
@@ -33,7 +32,6 @@ const userData = {
   ],
   technicalSkills: ["React", "JavaScript", "CSS", "Python", "Django"],
   softSkills: ["Teamwork", "Communication", "Problem Solving"],
-  certifications: ["AWS Certified Cloud Practitioner", "Google UX Design Certificate"],
   technicalSkillsDetailed: [
     {
       category: "Programming Languages",
@@ -77,43 +75,19 @@ const userData = {
       percent: 20,
       tags: ["Flutter", "React Native", "Swift", "Kotlin", "Ionic"]
     }
-  ],
-
-  // Add detailed certifications for card display
-  certificationsDetailed: [
-    {
-      title: "AWS Certified Cloud Practitioner",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
-      image: null // Replace with image path if available
-    },
-    {
-      title: "Google UX Design Certificate",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
-      image: null
-    },
-    {
-      title: "Microsoft Azure Fundamentals",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
-      image: null
-    },
-    {
-      title: "CompTIA Security+",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,",
-      image: null
-    }
   ]
 };
 
 const matchScoreColor = userData.matchScore < 50 ? "text-[#EF4444]" : userData.matchScore < 75 ? "text-[#F5B041]" : "text-[#27AE60]";
 
   return (
-    <div className="min-h-screen bg-[#9B1C31] flex items-start overflow-hidden">
+    <div className="min-h-screen bg-[#9B1C31] flex flex-col">
       <EmployerSideBar activePage="jobposts" />
 
       {/* Main Content Area */}
-      <div className="flex-1 h-screen bg-white rounded-tl-[40px] overflow-y-auto p-6 shadow-md">
+      <div className="flex-1 bg-white rounded-t-[40px] overflow-y-auto p-6 shadow-md">
         {/* Header */}
-        <div className="flex justify-between items-center w-full px-9 mb-0 mt-4">
+        <div className="flex justify-between items-center w-full px-9 mb-4 mt-4">
           <button
             className="text-gray-600 hover:text-black transition-colors text-[32px] flex items-center gap-2"
             onClick={() => window.history.back()}
@@ -124,7 +98,7 @@ const matchScoreColor = userData.matchScore < 50 ? "text-[#EF4444]" : userData.m
         </div>
 
         {/* Profile Content */}
-        <div className="flex flex-col space-y-7 justify-center items-center w-full">
+        <div className="flex flex-col space-y-7 items-center w-full pb-8">
           <div className="w-full max-w-[976px] h-[220px] rounded-[20px] shadow-all-around flex items-center gap-8 bg-white p-10">
             {/* Profile Picture */}
             <div className="relative flex-shrink-0">
@@ -252,27 +226,6 @@ const matchScoreColor = userData.matchScore < 50 ? "text-[#EF4444]" : userData.m
               <div className="flex flex-wrap gap-2 mb-2">
                 {userData.softSkills.map((skill, idx) => (
                   <span key={idx} className="bg-[#F5F6FA] text-[#3C3B3B] px-3 py-1 rounded-full text-[12px] font-semibold border border-[#D1FAE5]">{skill}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* Certifications Section - profile style layout */}
-          <div className="w-full max-w-[976px] rounded-[20px] shadow-all-around flex items-center gap-8 bg-white p-10 mt-7">
-            <div className="flex flex-col w-full">
-              <div className="text-[24px] font-semibold text-[#3C3B3B] mb-6">Certifications</div>
-              <div className="flex flex-wrap gap-2 w-full justify-start">
-                {userData.certificationsDetailed.map((cert, idx) => (
-                  <div key={idx} className="flex flex-col items-center w-[217px] h-[289px] p-4 border border-[#D1FAE5] rounded-xl bg-white shadow-sm">
-                    <div className="w-full h-[90px] bg-[#D1FAE5] rounded-md flex items-center justify-center mb-3">
-                      {cert.image ? (
-                        <img src={cert.image} alt={cert.title} className="w-full h-full object-cover rounded-md" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-[13px]">Image</div>
-                      )}
-                    </div>
-                    <div className="font-bold text-[16px] text-[#3C3B3B] text-center mb-1">{cert.title}</div>
-                    <div className="text-[12px] text-[#6B7280] text-center leading-snug">{cert.description}</div>
-                  </div>
                 ))}
               </div>
             </div>

@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ActiveSaveIcon from "../assets/ActiveSaveIcon.svg";
 import CompanyDetails from "./CompanyDetails";
-import { companyData } from "../context/companyData";
-import { TagNames } from "./DynamicTags"; // Import dynamic tags
-import { useTags } from "../context/TagsContext"; // Import tags context
+import { companyData } from "../hooks/useMockData";
+import { TagNames, SelectedTags, TagsDisplay } from "./DynamicTags"; // Import dynamic tags
+import { useTags } from "../hooks/useMockData"; // Import tags context
 // Import the mapping utilities
 import { getCategoryName, getProficiencyLevel, CATEGORIES, PROFICIENCY_LEVELS } from "../utils/jobMappings";
 
@@ -27,6 +26,14 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
   
   // Use real job data directly - NO MORE MOCK DATA MERGING
   const fullJobData = job;
+
+  // Call the parent's edit handler
+  const handleEditPost = () => {
+    onClose(); // Close the drawer
+    if (onEdit) {
+      onEdit(fullJobData); // Call parent's edit handler
+    }
+  };
 
   // Helper function to render dynamic tags
   const renderJobTags = (tagIds) => {
@@ -64,22 +71,22 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
   // Helper function to get work setting display
   const getWorkSettingDisplay = (setting) => {
     const settingMap = {
-      'onsite': 'On-site',
-      'hybrid': 'Hybrid',
-      'remote': 'Remote'
+      "onsite": "On-site",
+      "hybrid": "Hybrid",
+      "remote": "Remote"
     };
-    return settingMap[setting] || setting || 'Not specified';
+    return settingMap[setting] || setting || "Not specified";
   };
 
   // Helper function to get work type display
   const getWorkTypeDisplay = (workType) => {
     const workTypeMap = {
-      'fulltime': 'Full-Time',
-      'part-time': 'Part-Time', 
-      'contractual': 'Contractual',
-      'internship': 'Internship'
+      "fulltime": "Full-Time",
+      "part-time": "Part-Time", 
+      "contractual": "Contractual",
+      "internship": "Internship"
     };
-    return workTypeMap[workType] || workType || 'Not specified';
+    return workTypeMap[workType] || workType || "Not specified";
   };
 
   // Helper function to format salary
@@ -90,9 +97,9 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
       if (!amount) return null;
       const num = parseInt(amount);
       if (num >= 1000000) {
-        return (num / 1000000).toFixed(1) + 'M';
+        return (num / 1000000).toFixed(1) + "M";
       } else if (num >= 1000) {
-        return (num / 1000).toFixed(0) + 'k';
+        return (num / 1000).toFixed(0) + "k";
       }
       return num.toLocaleString();
     };
@@ -108,26 +115,6 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
       return `Up to ₱${max}`;
     }
     return "Salary not specified";
-  };
-
-  const handleEditButtonClick = () => {
-    // Ensure we pass data with backend field structure
-    const jobDataForEdit = {
-      ...fullJobData,
-      // Map display fields back to backend fields
-      job_title: fullJobData?.jobTitle || fullJobData?.job_title,
-      salary_min: fullJobData?.salaryMin || fullJobData?.salary_min,
-      salary_max: fullJobData?.salaryMax || fullJobData?.salary_max,
-      setting: fullJobData?.setting || fullJobData?.modalityValue,
-      work_type: fullJobData?.work_type || fullJobData?.workTypeValue,
-      position_count: fullJobData?.position_count || fullJobData?.availablePositions,
-      required_category_id: fullJobData?.required_category_id || fullJobData?.categoryId,
-      required_proficiency: fullJobData?.required_proficiency || fullJobData?.proficiencyLevel,
-      job_tags: fullJobData?.job_tags || fullJobData?.tags || []
-    };
-    
-    onEdit(jobDataForEdit);
-    onClose();
   };
 
   return (
@@ -152,22 +139,22 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
             >
               <i className="bi bi-arrow-left text-[52px]" />
             </button>
-            <img src={ActiveSaveIcon} alt="Tugma Logo" className="w-[68px] h-[41px]" />
           </div>
 
           <div className="flex-1 overflow-y-auto px-10 pb-10 font-montserrat">            
             <div className="flex flex-col gap-6">
               {fullJobData ? (
                 <>
-                  {/* Header */}
                   <div className="space-y-4 ml-8">                      
                     <div className="mb-4 mt-8">                      
                       <span className="text-[24px] font-bold text-[#9B1C31]">
                         {fullJobData?.applicants || fullJobData?.applicantCount || 0} Applicants
                       </span>
+                      
                       <h2 className="text-[40px] font-bold mt-1 text-black">
-                        {fullJobData?.title || fullJobData?.jobTitle || "Job Title"}
-                      </h2>                      
+                        {fullJobData?.jobTitle || fullJobData?.job_title || "Job Title"}
+                      </h2>
+                      
                       <div className="flex items-center">
                         <h3 className="text-[20px] font-bold text-[#6B7280]">
                           {fullJobData?.company || fullJobData?.companyName || "Company Name"}
@@ -180,19 +167,20 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
                       </div>
 
                       <p className="text-[16px] font-semibold text-[#6B7280]">
-                        {fullJobData?.location || "Job Location"}
+                        {fullJobData?.location || "Location not specified"}
                       </p>
                     </div>
 
-                    {/* Salary - Use real data from new backend structure */}
-                    <div className="flex items-center gap-2 mb-8">                        
-                      <p className="text-[29px] font-bold text-[#262424]">
-                        {fullJobData?.salary || formatSalaryRange(fullJobData?.salaryMin, fullJobData?.salaryMax)}
-                      </p>
+                    <div className="flex items-center gap-2 mb-8">
+                      <span className="text-[29px] font-bold text-[#262424]">
+                        {formatSalaryRange(
+                          fullJobData?.salaryMin || fullJobData?.salary_min,
+                          fullJobData?.salaryMax || fullJobData?.salary_max
+                        )}
+                      </span>
                       <p className="text-[16px] text-[#6B7280]">monthly</p>
                     </div>
                     
-                    {/* Work Setting and Type Tags - Use new backend data */}
                     <div className="flex gap-2 mb-6">
                       <span className="px-3 py-1 bg-[#FFF1F2] rounded text-[11px] font-semibold text-[#3C3B3B] flex items-center gap-1">
                         <i className="bi bi-geo-alt-fill text-[#9B1C31]" />                        
@@ -205,28 +193,21 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
                     </div>
                   </div>         
 
-                  {/* Description */}
                   <div className="space-y-6 ml-8">
                     <div className="gap-2">
                       <h4 className="text-[16px] font-semibold mb-3 text-[#3C3B3B]">Job Description</h4>
-                      <p className="text-[12px] font-semibold text-[#676767] leading-relaxed">
-                        {fullJobData?.description || "No description available."}
+                      <p className="text-[12px] font-semibold text-[#676767] leading-relaxed whitespace-pre-wrap">
+                        {fullJobData?.description || "No description available"}
                       </p>
                     </div>
                     
-                    {/* Available Positions - Use real data */}                    
-                    <p className="text-[14px] text-[#3C3B3B] font-semibold mb-6">                      
-                      {(() => {
-                        const positions = fullJobData?.positionCount || fullJobData?.position_count || fullJobData?.availablePositions || 0;
-                        return positions === 1 
-                          ? "1 available position" 
-                          : positions > 0
-                          ? `${positions} available positions`
-                          : "No positions available";
-                      })()}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] text-[#3C3B3B] font-semibold">Available positions:</span>
+                      <span className="text-[14px] text-[#3C3B3B] font-semibold">
+                        {fullJobData?.availablePositions || fullJobData?.position_count || 1}
+                      </span>
+                    </div>
                     
-                    {/* Category & Proficiency - Use imported mapping utilities */}
                     <div className="flex gap-16 mb-6">
                       <div className="flex flex-col">
                         <span className="text-[16px] font-semibold text-[#3C3B3B] mb-1">Category</span>
@@ -244,26 +225,31 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
                           <i className="bi bi-bar-chart-fill text-[#9B1C31]" />
                           {fullJobData?.proficiency || 
                            getProficiencyLevel(fullJobData?.proficiencyLevel || fullJobData?.required_proficiency) ||
-                           'Not specified'}
+                           "Not specified"}
                         </span>
                       </div>
                     </div>
 
-                    {/* Dynamic Tags Section */}
                     <div className="mb-8">
-                      <h4 className="text-[16px] font-semibold mb-3 text-[#3C3B3B]">Tags</h4>
-                      <div className="flex gap-2 flex-wrap mb-4">                        
-                        {renderJobTags(fullJobData?.tags || fullJobData?.job_tags)}
+                      <h4 className="text-[16px] font-semibold text-[#3C3B3B] mb-3">Tags</h4>
+                      
+                      <div className="flex gap-2 flex-wrap mb-4">
+                        {tagsLoading ? (
+                          <span className="text-gray-500 text-sm">Loading tags...</span>
+                        ) : (fullJobData?.tags || fullJobData?.job_tags)?.length > 0 ? (
+                          renderJobTags(fullJobData?.tags || fullJobData?.job_tags)
+                        ) : (
+                          <div className="text-gray-500 text-sm">No tags available</div>
+                        )}
                       </div>
                     </div>                    
 
-                    {/* Edit Button */}
                     <div className="w-full flex justify-center pt-6">
                       <button
-                        className="w-[300px] h-[48px] bg-[#9B1C31] text-white font-bold py-2 rounded-[10px] hover:bg-[#7D1628] transition-colors text-[16px]"
-                        onClick={handleEditButtonClick}
+                        onClick={handleEditPost}
+                        className="w-[300px] h-[48px] font-bold py-2 rounded-[10px] transition-colors text-[16px] bg-[#9B1C31] text-white hover:bg-[#7D1628]"
                       >
-                        Edit Job Listing
+                        Edit Post
                       </button>
                     </div>
                   </div>
@@ -278,7 +264,6 @@ export default function EmployerPostingDetails({ open, onClose, job, onEdit }) {
         </div>
       </div>      
       
-      {/* Company Details Modal */}
       <CompanyDetails 
         open={showCompanyDetails}
         onClose={handleCloseCompanyDetails}

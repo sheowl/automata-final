@@ -9,8 +9,8 @@ import {
   ChevronUpIcon,
   ChevronDownIcon
 } from "@heroicons/react/24/outline";
-import { useAuth } from "../context/AuthContext";
-import { useCompany } from "../context/CompanyContext";
+import { useAuth } from "../hooks/useMockData";
+import { useEmployerData } from "../hooks/useEmployerData";
 import { useNavigate } from "react-router-dom";
 
 const EmployerHomePage = () => {
@@ -35,16 +35,7 @@ const EmployerHomePage = () => {
   // Dashboard limit for recent applicants
   const DASHBOARD_LIMIT = 3;
 
-  // Get methods from AuthContext (authentication only)
-  const { 
-    isEmployer, 
-    isAuthenticated,
-    user,
-    userType,
-    loading // ⭐ ADD loading to destructuring
-  } = useAuth();
-
-  // Get methods from CompanyContext (company operations)
+  // Get methods from EmployerData hook (company operations)
   const { 
     getDashboardStats, 
     getRecentApplicants, 
@@ -52,48 +43,12 @@ const EmployerHomePage = () => {
     loading: companyLoading,
     error: companyError,
     clearError
-  } = useCompany();
+  } = useEmployerData();
 
-  // ⭐ CRITICAL: Wait for auth loading to complete
+  // Load data on mount
   useEffect(() => {
-    if (!loading) { // ⭐ Only run when AuthContext is done loading
-      checkAuthAndLoadData();
-    }
-  }, [loading]); // ⭐ Add loading as dependency
-
-  const checkAuthAndLoadData = async () => {
-    try {
-      console.log("🔍 Auth check - Loading:", loading, "Authenticated:", isAuthenticated(), "Employer:", isEmployer());
-      
-      // ⭐ Wait for auth context to finish loading
-      if (loading) {
-        console.log("⏳ Auth context still loading, waiting...");
-        return;
-      }
-
-      // Check if user is authenticated and is an employer
-      if (!isAuthenticated()) {
-        console.log("❌ Not authenticated, redirecting to sign-in");
-        navigate('/employer-sign-in');
-        return;
-      }
-
-      if (!isEmployer()) {
-        console.log("❌ Not an employer, redirecting to sign-in");
-        navigate('/employer-sign-in');
-        return;
-      }
-
-      console.log("✅ Auth check passed, loading dashboard data");
-      // Load dashboard data
-      await loadDashboardData();
-      
-    } catch (error) {
-      console.error("Error checking auth or loading data:", error);
-      setError("Failed to load dashboard. Please try again.");
-      setIsLoading(false);
-    }
-  };
+    loadDashboardData();
+  }, []);
 
   const loadDashboardData = async () => {
     try {
@@ -194,7 +149,7 @@ const EmployerHomePage = () => {
     return (
       <div className="min-h-screen bg-[#9B1C31] flex flex-col">
         <EmployerSideBar />
-        <div className="flex-1 bg-white rounded-t-[40px] overflow-y-auto p-6 shadow-md">
+        <div className="flex-1 bg-[#FEFEFF] rounded-t-[40px] overflow-y-auto p-6 shadow-md">
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9B1C31] mx-auto mb-4"></div>
@@ -212,7 +167,7 @@ const EmployerHomePage = () => {
   return (
     <div className="min-h-screen bg-[#9B1C31] flex flex-col">
       <EmployerSideBar />
-      <div className="flex-1 bg-white rounded-t-[40px] overflow-y-auto p-6 shadow-md">
+      <div className="flex-1 bg-[#FEFEFF] rounded-t-[40px] overflow-y-auto p-6 shadow-md">
         
         {/* Header with company info */}
         <div className="flex justify-between items-center p-4 px-[112px] -mb-8">

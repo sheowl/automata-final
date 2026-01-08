@@ -1,7 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import ApplicantDashLogo from "../assets/ApplicantDashLogo.svg";
-import TugmaLogo from "../assets/TugmaLogo.svg";
 
 const TugmaLandingPage = () => {
   const navigate = useNavigate();
@@ -21,13 +19,6 @@ const TugmaLandingPage = () => {
         background: 'linear-gradient(to right, #BDD1FF 0%, white 25%, white 75%, #FFDAAC 100%)'
       }}
     >
-      <div className=" items-center mt-8 justify-start px-6">
-        <img 
-          src={ApplicantDashLogo} 
-          alt="Tugma Logo" 
-          className="h-[42px] w-[77px] ml-16"
-        />
-      </div>
       
       {/* Header/Navigation */}
       <nav className="w-full p-6 flex justify-start">
@@ -37,15 +28,6 @@ const TugmaLandingPage = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-16">
-        {/* Logo */}
-        <div className="mb-12 flex flex-col items-center">
-          <img 
-            src={TugmaLogo} 
-            alt="Tugma Logo" 
-            className="h-[135px] w-[431px] mt-8 mb-4"
-          />
-        </div>
-
         {/* Main Heading */}
         <div className="text-center mb-12 max-w-4xl">
           <h1 className="text-[55px] font-extrabold text-[#3C3B3B] mb-4 leading-tight">

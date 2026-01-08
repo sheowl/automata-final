@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
-import SaveButton from "./SaveButton";
-import Tag from "./JobSkillTag";
 import CompanyDetails from "./CompanyDetails";
 import SkillMatchVisualization from "./SkillMatchVisualization";
-import { useTags } from "../context/TagsContext";
-import { supabase } from "../services/supabaseClient";
+import { useTags } from "../hooks/useMockData";
 
 const JobDetailsDrawer = ({ open, onClose, job, onApply }) => {
   const [companyDetailsOpen, setCompanyDetailsOpen] = useState(false);
@@ -23,20 +20,14 @@ const JobDetailsDrawer = ({ open, onClose, job, onApply }) => {
   const fetchMatchDetails = async () => {
     try {
       setLoadingMatchDetails(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      
-      if (!accessToken) return;
-
-      const response = await fetch(`http://localhost:8000/api/v1/matching/job/${job.job_id}/details`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMatchDetails(data);
-        console.log("🔍 Match details fetched:", data);
-      }
+      // Use static mock match data
+      const mockMatchDetails = {
+        match_score: job?.matchScore || 85,
+        matched_tags: job?.skills?.slice(0, 3) || ["React", "JavaScript"],
+        unmatched_job_tags: job?.skills?.slice(3) || ["TypeScript"],
+        applicant_tags: ["React", "JavaScript", "HTML", "CSS"]
+      };
+      setMatchDetails(mockMatchDetails);
     } catch (error) {
       console.error("Error fetching match details:", error);
     } finally {
@@ -133,7 +124,12 @@ const JobDetailsDrawer = ({ open, onClose, job, onApply }) => {
             >
               <i className="bi bi-arrow-left text-5xl" />
             </button>
-            <SaveButton size={60} />
+            <button
+              className="bg-white text-green-600 rounded-full p-4 shadow-lg hover:bg-green-50 transition"
+              onClick={() => console.log('Save clicked')}
+            >
+              <i className="bi bi-bookmark text-2xl" />
+            </button>
           </div>
 
           {/* Scrollable Content */}

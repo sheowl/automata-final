@@ -1,10 +1,8 @@
 import ApplicantSideBar from "../components/ApplicantSideBar";
 import { useState, useEffect } from "react";
 import ApplicantHeader from "../components/ApplicantHeader";
-import { useAuth } from "../context/AuthContext";
-import { supabase } from "../services/supabaseClient";
-import { useTags } from "../context/TagsContext";
-import LoadContent from "../components/LoadContent";
+import { useAuth } from "../hooks/useMockData";
+import { useTags } from "../hooks/useMockData";
 
 function ApplicantProfile() {
   const { user, loading } = useAuth();
@@ -15,7 +13,6 @@ function ApplicantProfile() {
 
   // NEW: State for real data
   const [workExperience, setWorkExperience] = useState([]);
-  const [certificates, setCertificates] = useState([]);
   const [proficiencyData, setProficiencyData] = useState([]);
   const [applicantTags, setApplicantTags] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -25,7 +22,6 @@ function ApplicantProfile() {
   const [softSkills, setSoftSkills] = useState([]);
 
   // Keep existing state...
-  const [zoomedCertificate, setZoomedCertificate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeField, setActiveField] = useState(""); 
   
@@ -38,90 +34,6 @@ function ApplicantProfile() {
   const [profileImage, setProfileImage] = useState(
     localStorage.getItem("profileImage") || null
   );
-
-  // ADD: Fetch functions for real data
-  const fetchWorkExperience = async (token) => {
-    try {
-      const response = await fetch("http://localhost:8000/api/v1/applicants/me/experience", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setWorkExperience(data);
-        console.log("Work experience fetched:", data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch work experience:", error);
-    }
-  };
-
-  const fetchCertificates = async (token) => {
-    try {
-      const response = await fetch("http://localhost:8000/api/v1/applicants/me/certificates", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCertificates(data);
-        console.log("Certificates fetched:", data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch certificates:", error);
-    }
-  };
-
-  const fetchProficiency = async (token) => {
-    try {
-      const response = await fetch("http://localhost:8000/api/v1/applicants/me/proficiency", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setProficiencyData(data);
-        console.log("Proficiency data fetched:", data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch proficiency data:", error);
-    }
-  };
-
-  const fetchApplicantTags = async (token, applicantId) => {
-    try {
-      // Get applicant's tags
-      const response = await fetch(`http://localhost:8000/api/v1/tags/applicant/${applicantId}/tags`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const applicantTags = await response.json();
-        console.log("Raw applicant tags fetched:", applicantTags);
-        
-        // Get all available tags with category info
-        const allTagsResponse = await fetch(`http://localhost:8000/api/v1/tags`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        if (allTagsResponse.ok) {
-          const allTags = await allTagsResponse.json();
-          console.log("All available tags:", allTags);
-          
-          // Enrich applicant tags with category information
-          const enrichedTags = applicantTags.map(appTag => {
-            const fullTag = allTags.find(tag => tag.tag_id === appTag.tag_id);
-            return {
-              ...appTag,
-              category_id: fullTag?.category_id || null
-            };
-          });
-          
-          setApplicantTags(enrichedTags);
-          console.log("Enriched applicant tags with categories:", enrichedTags);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch tags:", error);
-    }
-  };
 
   // ADD: Data processing functions
   const getCategoryNameById = (categoryId) => {
@@ -153,8 +65,8 @@ function ApplicantProfile() {
     return experiences.map(exp => ({
       title: exp.position,
       company: exp.company,
-      date: `${new Date(exp.start_date).toLocaleDateString()} - ${exp.end_date ? new Date(exp.end_date).toLocaleDateString() : 'Present'}`,
-      responsibilities: exp.description ? exp.description.split(';').filter(r => r.trim()) : []
+      date: exp.duration,
+      responsibilities: exp.description ? exp.description.split('.').filter(r => r.trim()).map(r => r.trim()) : []
     }));
   };
 
@@ -284,67 +196,62 @@ function ApplicantProfile() {
     );
   };
 
-const CertificateCard = ({ image, title, description, onClick }) => {
-  return (
-    <div
-      onClick={onClick}
-      className="min-w-[218px] min-h-[290px] max-w-[218px] rounded-lg border border-gray-300 p-4 shadow-sm hover:border-[#6B7280] 
-      transition-transform duration-300 ease-in-out flex flex-col items-center text-center cursor-pointer"
-    >
-      <div className="w-full min-h-[110px] bg-[#D9D9D9] rounded-md mb-4 overflow-hidden">
-        {image && (
-          <img src={image} alt={title} className="w-full h-full object-cover" />
-        )}
-      </div>
-      <h3 className="font-semibold text-base text-neutral-700">
-        {title.length > 20 ? `${title.slice(0, 20)}...` : title}
-      </h3>
-      <p className="text-xs text-gray-500 mt-2">
-        {description.length > 140 ? `${description.slice(0, 140)}...` : description}
-      </p>
-    </div>
-  );
-};
-
   useEffect(() => {
-    const fetchAllData = async () => {
+    const loadStaticData = async () => {
       if (!user) return;
       
       setIsLoadingProfile(true);
       setIsLoadingData(true);
 
       try {
-        const token = (await supabase.auth.getSession()).data.session.access_token;
+        // Import and use static mock data
+        const mockModule = await import('../data/mockData');
+        const mockUser = mockModule.mockApplicantUser;
         
-        // Fetch profile first
-        const profileResponse = await fetch("http://localhost:8000/api/v1/applicants/me", {
-          headers: { Authorization: `Bearer ${token}` }
+        // Set profile from mock data
+        setProfile({
+          first_name: mockUser.name.split(' ')[0],
+          last_name: mockUser.name.split(' ').slice(1).join(' '),
+          email: mockUser.email,
+          applicant_email: mockUser.email,
+          current_address: mockUser.profile.contactDetails.currentAddress,
+          contact_number: mockUser.profile.contactDetails.contactNumber,
+          telephone_number: mockUser.profile.contactDetails.telephoneNumber,
+          university: mockUser.profile.educationDetails.university,
+          degree: mockUser.profile.educationDetails.degree,
+          year_graduated: mockUser.profile.educationDetails.yearGraduated,
+          field: mockUser.profile.field,
+          applicant_id: mockUser.id
         });
         
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          setProfile(profileData);
-          console.log("Profile data fetched:", profileData);
-          
-          // Fetch all other data in parallel
-          await Promise.all([
-            fetchWorkExperience(token),
-            fetchCertificates(token),
-            fetchProficiency(token),
-            fetchApplicantTags(token, profileData.applicant_id)
-          ]);
-        } else {
-          setProfile(null);
-        }
+        // Set work experience
+        setWorkExperience(mockUser.profile.workExperiences);
+        
+        // Set skills as tags
+        const skills = mockUser.profile.skills || [];
+        const mockTags = skills.map((skill, index) => ({
+          tag_id: index + 1,
+          tag_name: skill,
+          category_id: index % 7 + 1 // Distribute across categories
+        }));
+        setApplicantTags(mockTags);
+        
+        // Create simple proficiency data
+        const profData = mockUser.profile.skills.map((skill, index) => ({
+          category_id: index % 7 + 1,
+          proficiency: 3 + (index % 3) // Varies between 3-5 (Competent to Expert)
+        }));
+        setProficiencyData(profData);
+        
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error loading profile data:", error);
       } finally {
         setIsLoadingProfile(false);
         setIsLoadingData(false);
       }
     };
 
-    if (user) fetchAllData();
+    if (user) loadStaticData();
   }, [user]);
 
   useEffect(() => {
@@ -363,8 +270,11 @@ const CertificateCard = ({ image, title, description, onClick }) => {
     return (
       <div className="min-h-screen bg-[#047857] flex flex-col">
         <ApplicantSideBar />
-        <div className="flex-1 bg-white rounded-t-[40px] overflow-y-auto p-6">
-          <LoadContent message="Loading your profile..." />
+        <div className="flex-1 bg-white rounded-t-[40px] overflow-y-auto p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your profile...</p>
+          </div>
         </div>
       </div>
     );
@@ -658,28 +568,6 @@ const CertificateCard = ({ image, title, description, onClick }) => {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Certifications Section */}
-          <div className="w-full max-w-[976px] h-auto rounded-[20px] shadow-all-around bg-white p-10 overflow-visible">
-            <div className="text-2xl font-bold text-neutral-700 mb-8">Certifications</div>
-            {certificates.length > 0 ? (
-              <div className="flex flex-row gap-6 justify-start overflow-x-auto overflow-visible relative">
-                {certificates.map((cert, idx) => (
-                  <CertificateCard
-                    key={idx}
-                    title={cert.certificate_name}
-                    description={cert.certificate_description || "No description available"}
-                    image={cert.certificate_file_url}
-                    onClick={() => setZoomedCertificate(cert)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-gray-500 text-sm italic">
-                No certificates added yet.
-              </div>
-            )}
           </div>
         </div>
         

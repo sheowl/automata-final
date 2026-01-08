@@ -1,28 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import EmployerSideBar from '../components/EmployerSideBar';
-import ApplicantDashLogo from '../assets/ApplicantDashLogo.svg';
-import { useCompany } from '../context/CompanyContext';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import EmployerSideBar from "../components/EmployerSideBar";
+import { useEmployerData } from "../hooks/useEmployerData";
 
 const EditCompanyPage = () => {
   const navigate = useNavigate();
-  const { companyProfile, updateCompanyProfile, getCompanyProfile, loading, error } = useCompany();
+  const { companyProfile, updateCompanyProfile, getCompanyProfile, error } = useEmployerData();
   
   const [companyData, setCompanyData] = useState({
-    name: '',
-    location: '',
-    type: '',
-    description: '',
+    name: "",
+    location: "",
+    type: "",
+    description: "",
     logo: null
   });
 
   const [contactUrls, setContactUrls] = useState({
-    linkedin: '',
-    instagram: '',
-    facebook: '',
-    github: '',
-    telegram: '',
-    viber: ''
+    linkedin: "",
+    instagram: "",
+    facebook: "",
+    github: "",
+    telegram: "",
+    viber: ""
   });
 
   const [contactLinks, setContactLinks] = useState({
@@ -35,7 +34,7 @@ const EditCompanyPage = () => {
   });
 
   const [showPopup, setShowPopup] = useState(null);
-  const [tempUrl, setTempUrl] = useState('');
+  const [tempUrl, setTempUrl] = useState("");
   const [originalData, setOriginalData] = useState({});
   const [originalUrls, setOriginalUrls] = useState({});
   const [saving, setSaving] = useState(false);
@@ -44,10 +43,10 @@ const EditCompanyPage = () => {
   useEffect(() => {
     if (companyProfile) {
       const profileData = {
-        name: companyProfile.company_name || companyProfile.name || '',
-        location: companyProfile.location || '',
-        type: companyProfile.company_size || companyProfile.type || '',
-        description: companyProfile.description || '',
+        name: companyProfile.company_name || companyProfile.name || "",
+        location: companyProfile.location || "",
+        type: companyProfile.company_size || companyProfile.type || "",
+        description: companyProfile.description || "",
         logo: companyProfile.logo || null
       };
       
@@ -62,7 +61,7 @@ const EditCompanyPage = () => {
       // Set socialLinks based on which URLs exist
       const activeSocialLinks = {};
       Object.keys(socialData).forEach(key => {
-        activeSocialLinks[key] = socialData[key] && socialData[key].trim() !== '';
+        activeSocialLinks[key] = socialData[key] && socialData[key].trim() !== "";
       });
       setContactLinks(activeSocialLinks);
     }
@@ -83,7 +82,7 @@ const EditCompanyPage = () => {
   const handleLogoChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = (e) => {
           setCompanyData(prev => ({
@@ -94,13 +93,13 @@ const EditCompanyPage = () => {
         };
         reader.readAsDataURL(file);
       } else {
-        alert('Please select a valid image file.');
+        alert("Please select a valid image file.");
       }
     }
   };
 
   const handleLogoClick = () => {
-    document.getElementById('logoInput').click();
+    document.getElementById("logoInput").click();
   };
 
   const toggleSocialLink = (platform) => {
@@ -112,12 +111,12 @@ const EditCompanyPage = () => {
       }));
       setContactUrls(prev => ({
         ...prev,
-        [platform]: ''
+        [platform]: ""
       }));
     } else {
       // Show popup to add link
       setShowPopup(platform);
-      setTempUrl(contactUrls[platform] || '');
+      setTempUrl(contactUrls[platform] || "");
     }
   };
 
@@ -133,12 +132,12 @@ const EditCompanyPage = () => {
       }));
     }
     setShowPopup(null);
-    setTempUrl('');
+    setTempUrl("");
   };
 
   const handleCancelPopup = () => {
     setShowPopup(null);
-    setTempUrl('');
+    setTempUrl("");
   };
 
   const handleSave = async () => {
@@ -156,17 +155,17 @@ const EditCompanyPage = () => {
         contact_links: contactUrls  // Changed from social_links to contact_links
       };
 
-      console.log('Sending update data:', updateData);
+      console.log("Sending update data:", updateData);
 
       // Update company profile using context method
       await updateCompanyProfile(updateData);
       
-      console.log('Company profile updated successfully');
-      navigate('/CompanyPage');
+      console.log("Company profile updated successfully");
+      navigate("/CompanyPage");
       
     } catch (error) {
-      console.error('Error updating company profile:', error);
-      alert('Error updating company profile. Please try again.');
+      console.error("Error updating company profile:", error);
+      alert("Error updating company profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -179,52 +178,30 @@ const EditCompanyPage = () => {
     // Reset social links based on original URLs
     const resetSocialLinks = {};
     Object.keys(originalUrls).forEach(key => {
-      resetSocialLinks[key] = originalUrls[key] && originalUrls[key].trim() !== '';
+      resetSocialLinks[key] = originalUrls[key] && originalUrls[key].trim() !== "";
     });
     setContactLinks(resetSocialLinks);
     
     setShowPopup(null);
-    setTempUrl('');
-    navigate('/CompanyPage');
+    setTempUrl("");
+    navigate("/CompanyPage");
   };
 
   const socialPlatforms = [
-    { key: 'linkedin', name: 'LinkedIn', icon: 'bi-linkedin' },
-    { key: 'instagram', name: 'Instagram', icon: 'bi-instagram' },
-    { key: 'facebook', name: 'Facebook', icon: 'bi-facebook' },
-    { key: 'github', name: 'GitHub', icon: 'bi-github' },
-    { key: 'telegram', name: 'Telegram', icon: 'bi-telegram' },
-    { key: 'viber', name: 'Viber', icon: 'bi-whatsapp' }
+    { key: "linkedin", name: "LinkedIn", icon: "bi-linkedin" },
+    { key: "instagram", name: "Instagram", icon: "bi-instagram" },
+    { key: "facebook", name: "Facebook", icon: "bi-facebook" },
+    { key: "github", name: "GitHub", icon: "bi-github" },
+    { key: "telegram", name: "Telegram", icon: "bi-telegram" },
+    { key: "viber", name: "Viber", icon: "bi-whatsapp" }
   ];
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#9B1C31] flex items-start overflow-hidden">
-        <EmployerSideBar />
-        <div className="flex-1 h-screen bg-[#FEFEFF] rounded-tl-[40px] overflow-y-auto p-2 sm:p-4 md:p-6 shadow-md w-full max-w-full">
-          <div className="flex justify-center items-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#9B1C31] mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading company data...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#9B1C31] flex items-start overflow-hidden">
+    <div className="min-h-screen bg-[#9B1C31] flex flex-col overflow-hidden">
       <EmployerSideBar />
-      <div className="flex-1 h-screen bg-[#FEFEFF] rounded-tl-[40px] overflow-y-auto p-2 sm:p-4 md:p-6 shadow-md w-full max-w-full">        
-        <div className="flex justify-between items-center p-4 pl-[112px] pr-[118px] mt-8">
+      <div className="flex-1 bg-[#FEFEFF] rounded-t-[40px] overflow-y-auto shadow-md">        
+        <div className="flex justify-between items-center p-4 pl-[112px] pr-[118px] pt-8">
           <div className="flex items-center gap-8">
-            <img 
-              src={ApplicantDashLogo} 
-              alt="Dashboard Logo" 
-              className="w-[136px] h-[84px]"
-            />
             <h1 className="text-[48px] font-bold text-[#9B1C31] -mb-1">Edit Company Profile</h1>
           </div>
         </div>        
@@ -268,7 +245,7 @@ const EditCompanyPage = () => {
                       <input
                         type="text"
                         value={companyData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
                         className="text-[24px] font-semibold text-[#3C3B3B] text-center bg-transparent border-none outline-none focus:bg-gray-50 rounded px-2 py-1"
                         placeholder="Company Name"
                         maxLength={30}
@@ -281,7 +258,7 @@ const EditCompanyPage = () => {
                       <input
                         type="text"
                         value={companyData.location}
-                        onChange={(e) => handleInputChange('location', e.target.value)}
+                        onChange={(e) => handleInputChange("location", e.target.value)}
                         className="text-[#6C6C6C] text-[16px] font-semibold text-center bg-transparent border-none outline-none focus:bg-gray-50 rounded px-2 py-1"
                         placeholder="Company Location"
                         style={{ width: `${Math.max(100, Math.min(320, companyData.location.length * 10 + 20))}px` }}
@@ -292,7 +269,7 @@ const EditCompanyPage = () => {
                       <input
                         type="text"
                         value={companyData.type}
-                        onChange={(e) => handleInputChange('type', e.target.value)}
+                        onChange={(e) => handleInputChange("type", e.target.value)}
                         className="text-[#3C3B3B] text-[15px] font-bold text-center bg-transparent border-none outline-none focus:bg-gray-50 rounded px-2 py-1"
                         placeholder="Company Type/Size"
                         style={{ width: `${Math.max(100, Math.min(320, companyData.type.length * 10 + 20))}px` }}
@@ -307,7 +284,7 @@ const EditCompanyPage = () => {
                   <div className="border-2 border-gray-200 rounded-lg p-4">
                     <textarea
                       value={companyData.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      onChange={(e) => handleInputChange("description", e.target.value)}
                       className="w-full h-[204px] text-[#676767] text-[16px] font-semibold leading-relaxed bg-transparent border-none outline-none resize-none"
                       placeholder="Enter company description..."
                     />
@@ -363,11 +340,11 @@ const EditCompanyPage = () => {
                 disabled={!hasChanges() || saving}
                 className={`w-[192px] h-[50px] px-8 py-3 rounded-3xl font-semibold transition-colors ${
                   hasChanges() && !saving
-                    ? 'bg-[#9B1C31] text-white hover:bg-[#7D1628]' 
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? "bg-[#9B1C31] text-white hover:bg-[#7D1628]" 
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? "Saving..." : "Save Changes"}
               </button>              
             </div>
           </div>
@@ -409,8 +386,8 @@ const EditCompanyPage = () => {
                   disabled={!tempUrl.trim()}
                   className={`w-[72px] h-[26px] px-4 rounded-lg font-semibold text-[10px] transition-colors ${
                     tempUrl.trim()
-                      ? 'bg-[#9B1C31] text-white hover:bg-[#7D1628]'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      ? "bg-[#9B1C31] text-white hover:bg-[#7D1628]"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                 >
                   Add

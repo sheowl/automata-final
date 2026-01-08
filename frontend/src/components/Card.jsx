@@ -1,5 +1,4 @@
 import React from "react";
-import SaveButton from "./SaveButton";
 
 function truncate(text, maxLength = 80) {
   if (!text) return "";
@@ -74,9 +73,8 @@ function Card({
   return (
     <div className="bg-white shadow-all-around rounded-[20px] p-6 w-[350px] max-w-[350px] h-[330px] flex flex-col 
     justify-between relative transition transform duration-300 ease-in-out hover:scale-102">
-      {/* Save Button + Match Score */}
-      <div className="flex justify-between items-center">
-        <SaveButton size={45} />
+      {/* Match Score */}
+      <div className="flex justify-end items-center">
         <div className={`text-end text-xl font-bold leading-tight ${matchScoreColor}`}>
           <div className="text-xl">{matchScore}%</div>
           <div className="text-sm font-bold -mt-[10%]">Matched</div>

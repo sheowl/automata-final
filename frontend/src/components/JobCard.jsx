@@ -42,12 +42,10 @@ const JobCard = (props) => {
   const actionOptions = status === "Active" 
     ? [
         { label: "Edit", value: "edit" },
-        { label: "Archive", value: "archive" },
         { label: "Delete", value: "delete" },
       ]
     : [
         { label: "Edit", value: "edit" },
-        { label: "Restore", value: "restore" },
         { label: "Delete", value: "delete" },      
       ];
 
@@ -89,11 +87,11 @@ const JobCard = (props) => {
   return (
     <div className={`bg-white border rounded-[20px] shadow-all-around p-6 flex relative w-full max-w-full h-[288px] hover:scale-101 transition-transform duration-300 ${dropdownOpen ? 'z-50' : 'z-10'}`}>      <div className="absolute top-12 right-12">
         <span className={`px-4 py-2 rounded-full text-[14px] w-[126px] h-[29px] font-semibold flex items-center justify-center ${
-          status === "Active" 
+          status?.toLowerCase() === "active" 
             ? "bg-[#16A34A] text-white" 
-            : "bg-[#FACC15] text-white"
+            : "bg-[#6B7280] text-white"
         }`}>
-          {status}
+          {status?.charAt(0).toUpperCase() + status?.slice(1).toLowerCase() || status}
         </span>
       </div>
 

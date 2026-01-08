@@ -1,4 +1,4 @@
-// utils/statusUtils.js
+// Status utility functions
 
 export const getStatusLabel = (status) => {
   if (status.toLowerCase().includes("rejected")) return "Rejected";

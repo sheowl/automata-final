@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate, NavLink, useLocation } from 'react-router-dom';
-import TugmaLogoApplicant from '../assets/TugmaLogo.svg';
 
 const navItems = [
     { icon: 'bi-house', label: 'Home Page', path: '/EmployerHomePage', key: 'homepage' },
@@ -41,13 +40,6 @@ const EmployerSideBar = ({ activePage }) => {
 
     return (
         <div className="w-full bg-[#9B1C31] flex items-center justify-between px-8 py-6">
-            {/* Logo */}
-            <img
-                src={TugmaLogoApplicant}
-                alt="Tugma Logo"
-                className="w-[160px] h-[40px]"
-            />
-
             {/* Navigation */}
             <nav className="flex-1 flex justify-center">
                 <ul className="flex gap-6 font-bold items-center">                        

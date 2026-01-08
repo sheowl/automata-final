@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { useCompany } from "../context/CompanyContext"; // Changed from useJobs
-import { useTags } from "../context/TagsContext"; // Added for dynamic tags
-import { useAuth } from "../context/AuthContext";
-import TagPopup from "./TagPopup";
+import { useEmployerData } from "../hooks/useEmployerData"; // Changed to centralized hook
+import { useTags } from "../hooks/useMockData"; // Added for dynamic tags
 import { SelectedTags } from "./DynamicTags"; // Added for dynamic tag display
+import TagPopup from "./TagPopup"; // Added for tag selection
 import { getCategoryName, getProficiencyLevel, CATEGORIES, PROFICIENCY_LEVELS } from "../utils/jobMappings";
 
 // Dropdown options - Update values to match backend
@@ -58,9 +57,9 @@ const CustomDropdown = ({
   };
 
   let displayLabel;
-  if (dropdownKey === 'category' && selected) {
+  if (dropdownKey === "category" && selected) {
     displayLabel = getCategoryName(selected);
-  } else if (dropdownKey === 'proficiency' && selected) {
+  } else if (dropdownKey === "proficiency" && selected) {
     displayLabel = getProficiencyLevel(selected);
   } else {
     displayLabel = options.find((opt) => opt.value === selected)?.label || placeholder;
@@ -98,13 +97,12 @@ const CustomDropdown = ({
 //POST New Jobs
 const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
   // Use CompanyContext instead of JobsContext
-  const { loading: contextLoading, error: contextError, clearError } = useCompany(); // REMOVED createJob from here
+  const { loading: contextLoading, error: contextError, clearError } = useEmployerData(); // Get loading and error states
   const { getTagNameById, loading: tagsLoading } = useTags();
-  const { user, isAuthenticated } = useAuth();
   
   // Use company data from props (companyProfile from CompanyContext)
   const company = companyData || {};
-  const currentUser = userData || user;
+  const currentUser = userData || {};
 
   // Update form state to use tag IDs instead of tag names
   const [form, setForm] = useState({
@@ -117,7 +115,6 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
     tags: [], // Now stores array of tag IDs
   });
 
-  const [showTagPopup, setShowTagPopup] = useState(false);
   const [selectedModality, setSelectedModality] = useState(null);
   const [selectedWorkType, setSelectedWorkType] = useState(null);
   const [availablePositions, setAvailablePositions] = useState(null);
@@ -125,13 +122,14 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
   const [selectedProficiency, setSelectedProficiency] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showTagPopup, setShowTagPopup] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     
     // Handle salary fields
-    if (name === 'salaryMin' || name === 'salaryMax') {
-      const numericValue = value.replace(/[^0-9]/g, '');
+    if (name === "salaryMin" || name === "salaryMax") {
+      const numericValue = value.replace(/[^0-9]/g, "");
       setForm({ ...form, [name]: numericValue });
     } else {
       setForm({ ...form, [name]: value });
@@ -141,6 +139,11 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
   // Updated to handle tag IDs instead of tag names
   const handleTagRemove = (tagId) => {
     setForm({ ...form, tags: form.tags.filter((id) => id !== tagId) });
+  };
+
+  // Handle tag save from popup
+  const handleTagSave = (newTags) => {
+    setForm({ ...form, tags: newTags });
   };
 
   // Add salary validation
@@ -168,19 +171,13 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
     e.preventDefault();
     
     if (!isFormValid()) {
-      alert('Please fill in all required fields with valid data');
-      return;
-    }
-
-    // Check authentication first
-    if (!isAuthenticated) {
-      alert('Please log in to create a job posting.');
+      alert("Please fill in all required fields with valid data");
       return;
     }
 
     // Make sure we have company data
     if (!company || !company.company_id) {
-      alert('Company information is not available. Please try refreshing the page.');
+      alert("Company information is not available. Please try refreshing the page.");
       return;
     }
 
@@ -189,7 +186,7 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
       clearError();
       
       // Get current date in the format expected by backend
-      const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const currentDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
       const currentDateTime = new Date().toISOString(); // Full ISO datetime
       
       // Transform data to match backend expected format exactly
@@ -209,7 +206,7 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
         created_at: currentDateTime
       };
       
-      console.log('🚀 JobNewPost: Preparing job data:', jobData);
+      console.log("🚀 JobNewPost: Preparing job data:", jobData);
       
       // CHANGED: Call onSave instead of createJob directly
       if (onSave) {
@@ -231,16 +228,15 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
       setAvailablePositions(null);
       setSelectedCategory(null);
       setSelectedProficiency(null);
-      setShowTagPopup(false);
       
       onClose();
       
     } catch (error) {
-      console.error('❌ Failed to prepare job data:', error);
+      console.error("❌ Failed to prepare job data:", error);
       
       // Try to get more detailed error information
-      if (error.message && error.message.includes('422')) {
-        alert('Invalid data submitted. Please check all required fields are filled correctly.');
+      if (error.message && error.message.includes("422")) {
+        alert("Invalid data submitted. Please check all required fields are filled correctly.");
       } else {
         alert(`Failed to create job: ${error.message || error}`);
       }
@@ -248,59 +244,6 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
       setSaving(false);
     }
   };
-
-  // Check authentication
-  if (!isAuthenticated) {
-    return (
-      <>
-        <div
-          className={`fixed inset-0 bg-black bg-opacity-40 transition-opacity duration-300 z-40 ${
-            open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
-          onClick={onClose}
-        />
-        
-        <div
-          className={`fixed top-0 right-0 h-full w-[640px] bg-white shadow-2xl z-50 transform transition-transform duration-300 rounded-tl-[30px] rounded-bl-[30px] ${
-            open ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          <div className="p-10 w-full h-full flex items-center justify-center">
-            <div className="text-red-500 font-semibold text-lg text-center">
-              Please log in to create job postings.
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // Check company data (companyProfile)
-  if (!company || !company.company_id) {
-    return (
-      <>
-        <div
-          className={`fixed inset-0 bg-black bg-opacity-40 transition-opacity duration-300 z-40 ${
-            open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
-          onClick={onClose}
-        />
-        
-        <div
-          className={`fixed top-0 right-0 h-full w-[640px] bg-white shadow-2xl z-50 transform transition-transform duration-300 rounded-tl-[30px] rounded-bl-[30px] ${
-            open ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          <div className="p-10 w-full h-full flex items-center justify-center">
-            <div className="text-red-500 font-semibold text-lg text-center">
-              Company profile not loaded.<br />
-              Please ensure you're logged in as an employer.
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
@@ -345,7 +288,7 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
                 onChange={handleChange}
                 required
               />
-              {form.jobTitle === '' && (
+              {form.jobTitle === "" && (
                 <span className="absolute left-48 top-[70%] -translate-y-1/2 flex items-center pointer-events-none">
                   <i className="bi bi-pencil-fill text-[#B4A598] text-xl"></i>
                 </span>
@@ -356,7 +299,7 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
                 className="outline-none border-b-2 border-[transparent] focus:border-[#9B1C31] w-full font-bold text-[#6B7280] placeholder:text-[20px] placeholder:font-bold placeholder:text-[#6B7280]"
                 name="companyName"
                 placeholder="Company Name"
-                value={form.companyName || company.company_name || ''}
+                value={form.companyName || company.company_name || ""}
                 onChange={handleChange}
                 required
               />
@@ -366,7 +309,7 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
                 className="outline-none border-b-2 border-transparent focus:border-[#9B1C31] w-full font-semibold text-[#6B7280] placeholder:text-[16px] placeholder:font-semibold placeholder:text-[#6B7280]"
                 name="location"
                 placeholder="Job Location"
-                value={form.location || company.location || ''}
+                value={form.location || company.location || ""}
                 onChange={handleChange}
                 required
               />
@@ -519,26 +462,29 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
           
           {/* Dynamic Tags Section */}
           <div className="flex flex-col gap-2">
-            <label className="font-semibold text-[16px] text-[#3C3B3B]">Tags</label>
+            <div className="flex justify-between items-center">
+              <label className="font-semibold text-[16px] text-[#3C3B3B]">Tags</label>
+              <button
+                type="button"
+                onClick={() => setShowTagPopup(true)}
+                className="text-[#9B1C31] text-[14px] font-semibold hover:underline"
+              >
+                + Add Tags
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2 mb-2">
               {/* Display selected tags using dynamic tags component */}
               {tagsLoading ? (
                 <span className="text-gray-500 text-sm">Loading tags...</span>
-              ) : (
+              ) : form.tags.length > 0 ? (
                 <SelectedTags 
                   tagIds={form.tags} 
                   onRemoveTag={handleTagRemove}
                   className="flex-wrap"
                 />
+              ) : (
+                <span className="text-gray-500 text-sm">No tags selected</span>
               )}
-              
-              <button
-                type="button"
-                className="w-[219px] px-2 py-1 bg-transparent text-[#9B1C31] border-2 border-[#9B1C31] rounded-xl text-[12px] font-semibold hover:bg-[#9B1C31] hover:text-white transition"
-                onClick={() => setShowTagPopup(true)}
-              >
-                + Tag
-              </button>
             </div>
           </div>  
 
@@ -549,27 +495,25 @@ const JobNewPost = ({ open, onClose, onSave, companyData, userData }) => {
               disabled={!isFormValid() || saving || contextLoading}
               className={`w-[243px] h-[48px] font-bold rounded-lg transition text-[16px] ${
                 isFormValid() && !saving && !contextLoading
-                  ? 'bg-[#9B1C31] text-white hover:bg-[#7D1628]' 
-                  : 'bg-[#979797] text-white cursor-not-allowed'
+                  ? "bg-[#9B1C31] text-white hover:bg-[#7D1628]" 
+                  : "bg-[#979797] text-white cursor-not-allowed"
               }`}
             >
-              {saving || contextLoading ? 'Creating...' : 'Post Job'}
+              {saving || contextLoading ? "Creating..." : "Post Job"}
             </button>          
           </div>
         </form>
         
-        {/* Dynamic Tag Popup */}
-        <TagPopup
-          open={showTagPopup}
-          onClose={() => setShowTagPopup(false)}
-          currentTags={form.tags} // Pass array of tag IDs
-          onSave={(selectedTagIds) => {
-            console.log('💾 Saving selected tag IDs:', selectedTagIds);
-            setForm({ ...form, tags: selectedTagIds });
-          }}
-        />
         </div>
       </div>
+      
+      {/* Tag Selection Popup */}
+      <TagPopup
+        open={showTagPopup}
+        onClose={() => setShowTagPopup(false)}
+        onSave={handleTagSave}
+        currentTags={form.tags}
+      />
     </>
   );
 };

@@ -16,54 +16,9 @@ const AppComReg = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    if (!email || !firstName || !lastName || !password || !ConfirmPassword) {
-      setError("Please fill in all fields.");
-      setLoading(false);
-      return;
-    }
-    if (!email.includes('@')) {
-      setError("Please enter a valid email address.");
-      setLoading(false);
-      return;
-    }
-    if (password !== ConfirmPassword) {
-      setError("Passwords do not match.");
-      setLoading(false);
-      return;
-    }
-    if (!agreed) {
-      setError("You must agree to the terms.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await fetch("http://localhost:8000/api/v1/auth/applicant/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          first_name: firstName,
-          last_name: lastName,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        // Registration successful, redirect to login or dashboard
-        navigate("/applicant-sign-in");
-      } else {
-        setError(data.detail || "Registration failed.");
-      }
-    } catch (err) {
-      setError("Network error. Please try again.");
-    }
-    setLoading(false);
+    navigate("/applicantonboarding");
   };
 
   return (

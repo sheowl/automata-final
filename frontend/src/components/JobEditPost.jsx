@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useCompany } from "../context/CompanyContext";
-import { useTags } from "../context/TagsContext";
-import TagPopup from "./TagPopup";
+import { useEmployerData } from "../hooks/useEmployerData";
+import { useTags } from "../hooks/useMockData";
 import { SelectedTags } from "./DynamicTags";
+import TagPopup from "./TagPopup";
 import { getCategoryName, getProficiencyLevel, CATEGORIES, PROFICIENCY_LEVELS } from "../utils/jobMappings";
 
 // Dropdown options (keep these as is)
@@ -30,7 +30,7 @@ const categoryOptions = Object.entries(CATEGORIES).map(([id, name]) => ({
 }));
 
 const proficiencyOptions = Object.entries(PROFICIENCY_LEVELS).map(([id, level]) => ({
-  label: <span className="text-[#9B1C31]">{level.replace('Level ', 'Level ')}</span>,
+  label: <span className="text-[#9B1C31]">{level.replace("Level ", "Level ")}</span>,
   value: parseInt(id)
 }));
 
@@ -55,9 +55,9 @@ const CustomDropdown = ({
   };
 
   let displayLabel;
-  if (dropdownKey === 'category' && selected) {
+  if (dropdownKey === "category" && selected) {
     displayLabel = getCategoryName(selected);
-  } else if (dropdownKey === 'proficiency' && selected) {
+  } else if (dropdownKey === "proficiency" && selected) {
     displayLabel = getProficiencyLevel(selected);
   } else {
     displayLabel = options.find((opt) => opt.value === selected)?.label || placeholder;
@@ -92,7 +92,7 @@ const CustomDropdown = ({
 };
 
 const JobEditPost = ({ open, onClose, onSave, jobData }) => {
-  const { updateJob, loading: contextLoading, error: contextError, clearError } = useCompany();
+  const { updateJobPost: updateJob, loading: contextLoading, error: contextError, clearError } = useEmployerData();
   const { getTagNameById, getTagNamesByIds, loading: tagsLoading } = useTags();
   
   const jobDataRef = useRef(null);
@@ -114,39 +114,39 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
   });
 
   const [originalForm, setOriginalForm] = useState({});
-  const [showTagPopup, setShowTagPopup] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [showTagPopup, setShowTagPopup] = useState(false);
 
   // Enhanced data mapping function
   const mapJobDataToForm = (jobData) => {
-    console.log('🔄 Mapping jobData to form:', jobData);
+    console.log("🔄 Mapping jobData to form:", jobData);
     
     // Extract data with multiple fallback options for different data structures
     const mappedData = {
       jobTitle: jobData?.jobTitle || jobData?.job_title || "",
       companyName: jobData?.companyName || jobData?.company_name || "",
       location: jobData?.location || "",
-      salaryMin: (jobData?.salaryMin || jobData?.salary_min || "").toString(),
-      salaryMax: (jobData?.salaryMax || jobData?.salary_max || "").toString(),
-      modality: jobData?.setting || jobData?.modalityValue || "", // Fix: use 'setting' first
-      workType: jobData?.work_type || jobData?.workTypeValue || "", // Fix: use 'work_type' first
+      salaryMin: String(jobData?.salaryMin || jobData?.salary_min || ""),
+      salaryMax: String(jobData?.salaryMax || jobData?.salary_max || ""),
+      modality: jobData?.setting || jobData?.modalityValue || "",
+      workType: jobData?.work_type || jobData?.workTypeValue || "",
       description: jobData?.description || "",
-      availablePositions: parseInt(jobData?.position_count || jobData?.positionCount || jobData?.availablePositions || 1),
-      tags: jobData?.job_tags || jobData?.tags || [], // Fix: use 'job_tags' first
-      category: parseInt(jobData?.required_category_id || jobData?.categoryId || "") || "",
-      proficiency: parseInt(jobData?.required_proficiency || jobData?.proficiencyLevel || "") || ""
+      availablePositions: parseInt(jobData?.position_count || jobData?.positionCount || jobData?.availablePositions || 1) || 1,
+      tags: Array.isArray(jobData?.job_tags) ? [...jobData.job_tags] : (Array.isArray(jobData?.tags) ? [...jobData.tags] : []),
+      category: parseInt(jobData?.required_category_id || jobData?.categoryId) || "",
+      proficiency: parseInt(jobData?.required_proficiency || jobData?.proficiencyLevel) || ""
     };
     
-    console.log('✅ Mapped form data:', mappedData);
+    console.log("✅ Mapped form data:", mappedData);
     return mappedData;
   };
 
   // Store job data when modal opens
   useEffect(() => {
     if (open && jobData && !isSubmittingRef.current) {
-      console.log('🔄 Initializing JobEditPost with jobData:', jobData);
+      console.log("🔄 Initializing JobEditPost with jobData:", jobData);
       
       jobDataRef.current = { ...jobData };
       const initialData = mapJobDataToForm(jobData);
@@ -182,14 +182,27 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
   }, [open]);
 
   const hasChanges = React.useMemo(() => {
-    return JSON.stringify(form) !== JSON.stringify(originalForm);
+    const formStr = JSON.stringify(form);
+    const originalStr = JSON.stringify(originalForm);
+    const changed = formStr !== originalStr;
+    
+    console.log("🔍 hasChanges check:", {
+      changed,
+      form,
+      originalForm,
+      formStr,
+      originalStr
+    });
+    
+    return changed;
   }, [form, originalForm]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log("📝 Field changed:", { name, value });
     
-    if (name === 'salaryMin' || name === 'salaryMax') {
-      const numericValue = value.replace(/[^0-9]/g, '');
+    if (name === "salaryMin" || name === "salaryMax") {
+      const numericValue = value.replace(/[^0-9]/g, "");
       setForm({ ...form, [name]: numericValue });
     } else {
       setForm({ ...form, [name]: value });
@@ -197,6 +210,7 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
   };
 
   const handleDropdownSelect = (field, value) => {
+    console.log("📝 Dropdown changed:", { field, value });
     setForm({ ...form, [field]: value });
   };
 
@@ -207,6 +221,11 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
 
   const handleTagRemove = (tagId) => {
     setForm({ ...form, tags: form.tags.filter((id) => id !== tagId) });
+  };
+
+  // Handle tag save from popup
+  const handleTagSave = (newTags) => {
+    setForm({ ...form, tags: newTags });
   };
 
   const validateForm = () => {
@@ -238,15 +257,15 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
     
     // Prevent double submission and use stored ref data
     if (isSubmittingRef.current || !jobDataRef.current) {
-      console.log('❌ Submission blocked');
+      console.log("❌ Submission blocked");
       return;
     }
 
     // Validate form
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      console.error('❌ Validation errors:', validationErrors);
-      alert('Please fix the following errors:\n' + validationErrors.join('\n'));
+      console.error("❌ Validation errors:", validationErrors);
+      alert("Please fix the following errors:\n" + validationErrors.join("\n"));
       return;
     }
 
@@ -254,13 +273,13 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
     const jobId = storedJobData.id || storedJobData.job_id || storedJobData.jobId;
     
     if (!jobId) {
-      console.error('❌ No job ID available');
-      alert('Error: Could not find job ID');
+      console.error("❌ No job ID available");
+      alert("Error: Could not find job ID");
       return;
     }
     
     if (!hasChanges) {
-      console.log('❌ No changes detected');
+      console.log("❌ No changes detected");
       return;
     }
 
@@ -269,8 +288,8 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
       setSaving(true);
       clearError();
       
-      console.log('🚀 Submitting job update with ID:', jobId);
-      console.log('📝 Form data:', form);
+      console.log("🚀 Submitting job update with ID:", jobId);
+      console.log("📝 Form data:", form);
       
       // Create properly formatted update data - EXCLUDE date fields
       const updatedJobData = {
@@ -287,10 +306,10 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
         // REMOVED: date_added and created_at - these should not be updated
       };
       
-      console.log('📤 Sending update data to API:', updatedJobData);
+      console.log("📤 Sending update data to API:", updatedJobData);
       
       const result = await updateJob(jobId, updatedJobData);
-      console.log('✅ Update successful:', result);
+      console.log("✅ Update successful:", result);
       
       if (onSave) {
         onSave(result);
@@ -299,13 +318,13 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
       onClose();
       
     } catch (error) {
-      console.error('❌ Update failed:', error);
+      console.error("❌ Update failed:", error);
       
       // Show more specific error message
-      if (error.message.includes('422')) {
-        alert('Invalid data submitted. Please check all fields are filled correctly.');
+      if (error.message.includes("422")) {
+        alert("Invalid data submitted. Please check all fields are filled correctly.");
       } else {
-        alert('Failed to update job. Please try again.');
+        alert("Failed to update job. Please try again.");
       }
       
       isSubmittingRef.current = false;
@@ -333,7 +352,7 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
            form.availablePositions >= 1;
   };
 
-  // Don't render until initialized
+  // Don"t render until initialized
   if (!open || !initialized) {
     return (
       <div
@@ -387,7 +406,7 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
                   required
                   title={form.jobTitle} 
                 />
-                {form.jobTitle === '' && (
+                {form.jobTitle === "" && (
                   <span className="absolute left-48 top-[70%] -translate-y-1/2 flex items-center pointer-events-none">
                     <i className="bi bi-pencil-fill text-[#B4A598] text-xl"></i>
                   </span>
@@ -465,11 +484,11 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
 
             {/* Modality */}
             <div className="flex flex-col gap-2">
-              <label className="font-semibold text-[16px] text-[#3C3B3B]">Job Modality *</label>              
+              <label className="font-semibold text-[16px] text-[#3C3B3B]">Job Modality <span className="text-red-600">*</span></label>              
               <CustomDropdown
                 options={modalityOptions}
                 selected={form.modality}
-                onSelect={(value) => handleDropdownSelect('modality', value)}
+                onSelect={(value) => handleDropdownSelect("modality", value)}
                 placeholder="Select Modality"
                 openDropdown={openDropdown}
                 setOpenDropdown={setOpenDropdown}
@@ -479,11 +498,11 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
 
             {/* Work Type */}
             <div className="flex flex-col gap-2">
-              <label className="font-semibold text-[16px] text-[#3C3B3B]">Job Work Type *</label>              
+              <label className="font-semibold text-[16px] text-[#3C3B3B]">Job Work Type <span className="text-red-600">*</span></label>              
               <CustomDropdown
                 options={workTypeOptions}
                 selected={form.workType}
-                onSelect={(value) => handleDropdownSelect('workType', value)}
+                onSelect={(value) => handleDropdownSelect("workType", value)}
                 placeholder="Select Work Type"
                 openDropdown={openDropdown}
                 setOpenDropdown={setOpenDropdown}
@@ -493,7 +512,7 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
 
             {/* Description */}
             <div className="flex flex-col gap-2">
-              <label className="font-semibold text-[#232323]">Job Description *</label>
+              <label className="font-semibold text-[#232323]">Job Description <span className="text-red-600">*</span></label>
               <textarea
                 className="border-2 border-[#A6A6A6] focus:border-[#9B1C31] focus:outline-none focus:ring-0 rounded px-3 py-2"
                 name="description"
@@ -507,11 +526,11 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
             
             {/* Available Positions */}
             <div className="flex flex-col gap-2">
-              <label className="font-semibold text-[16px] text-[#3C3B3B]">Available positions *</label>            
+              <label className="font-semibold text-[16px] text-[#3C3B3B]">Available positions <span className="text-red-600">*</span></label>            
               <CustomDropdown
                 options={positionOptions}
                 selected={form.availablePositions}
-                onSelect={(value) => handleDropdownSelect('availablePositions', value)}
+                onSelect={(value) => handleDropdownSelect("availablePositions", value)}
                 placeholder="Select Positions"
                 openDropdown={openDropdown}
                 setOpenDropdown={setOpenDropdown}
@@ -522,7 +541,7 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
             {/* Category and Proficiency */}
             <div className="flex flex-row gap-8">
               <div className="flex flex-col gap-2 flex-1">
-                <label className="font-semibold text-[16px] text-[#3C3B3B]">Required Category *</label>
+                <label className="font-semibold text-[16px] text-[#3C3B3B]">Required Category <span className="text-red-600">*</span></label>
                 <CustomDropdown
                   options={categoryOptions}
                   selected={form.category}
@@ -535,7 +554,7 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
                 />
               </div>
               <div className="flex flex-col gap-2 flex-1">
-                <label className="font-semibold text-[16px] text-[#3C3B3B]">Required Proficiency *</label>
+                <label className="font-semibold text-[16px] text-[#3C3B3B]">Required Proficiency <span className="text-red-600">*</span></label>
                 <CustomDropdown
                   options={proficiencyOptions}
                   selected={form.proficiency}
@@ -551,26 +570,29 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
 
             {/* Dynamic Tags Section */}
             <div className="flex flex-col gap-2">
-              <label className="font-semibold text-[16px] text-[#3C3B3B]">Tags</label>
+              <div className="flex justify-between items-center">
+                <label className="font-semibold text-[16px] text-[#3C3B3B]">Tags</label>
+                <button
+                  type="button"
+                  onClick={() => setShowTagPopup(true)}
+                  className="text-[#9B1C31] text-[14px] font-semibold hover:underline"
+                >
+                  + Add/Edit Tags
+                </button>
+              </div>
               
               <div className="flex flex-wrap gap-2 mb-2">
                 {tagsLoading ? (
                   <span className="text-gray-500 text-sm">Loading tags...</span>
-                ) : (
+                ) : form.tags.length > 0 ? (
                   <SelectedTags 
                     tagIds={form.tags} 
                     onRemoveTag={handleTagRemove}
                     className="flex-wrap"
                   />
+                ) : (
+                  <span className="text-gray-500 text-sm">No tags selected</span>
                 )}
-                
-                <button
-                  type="button"
-                  className="w-[219px] px-2 py-1 bg-transparent text-[#9B1C31] border-2 border-[#9B1C31] rounded-xl text-[12px] font-semibold hover:bg-[#9B1C31] hover:text-white transition"
-                  onClick={() => setShowTagPopup(true)}
-                >
-                  + Tag
-                </button>
               </div>
             </div>            
             
@@ -589,27 +611,25 @@ const JobEditPost = ({ open, onClose, onSave, jobData }) => {
                 disabled={!hasChanges || !isFormValid() || saving || contextLoading}
                 className={`w-[202px] h-[50px] font-bold rounded-3xl transition text-[16px] ${
                   hasChanges && isFormValid() && !saving && !contextLoading
-                    ? 'bg-[#9B1C31] text-white hover:bg-[#7D1628]' 
-                    : 'bg-[#979797] text-white cursor-not-allowed'
+                    ? "bg-[#9B1C31] text-white hover:bg-[#7D1628]" 
+                    : "bg-[#979797] text-white cursor-not-allowed"
                 }`}
               >
-                {saving || contextLoading ? 'Saving...' : 'Save Changes'}
+                {saving || contextLoading ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>
           
-          {/* Dynamic Tag Popup */}
-          <TagPopup
-            open={showTagPopup}
-            onClose={() => setShowTagPopup(false)}
-            currentTags={form.tags}
-            onSave={(selectedTagIds) => {
-              console.log('💾 Saving selected tag IDs:', selectedTagIds);
-              setForm({ ...form, tags: selectedTagIds });
-            }}
-          />
         </div>
       </div>
+      
+      {/* Tag Selection Popup */}
+      <TagPopup
+        open={showTagPopup}
+        onClose={() => setShowTagPopup(false)}
+        onSave={handleTagSave}
+        currentTags={form.tags}
+      />
     </>
   );
 };

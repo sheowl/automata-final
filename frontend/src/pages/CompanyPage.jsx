@@ -1,27 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EmployerSideBar from '../components/EmployerSideBar';
-import ApplicantDashLogo from '../assets/ApplicantDashLogo.svg';
-import { useCompany } from '../context/CompanyContext';
-import { useAuth } from '../context/AuthContext';
+import { useEmployerData } from "../hooks/useEmployerData";
+import { useAuth } from "../hooks/useMockData";
 
 const CompanyPage = () => {
   const navigate = useNavigate();
   
-  // ⭐ ADD AUTH CONTEXT
-  const { 
-    isEmployer, 
-    isAuthenticated,
-    loading: authLoading 
-  } = useAuth();
-  
-  // Use the custom hook instead of useContext
+  // Use the centralized employer data hook
   const { 
     companyProfile, 
     getCompanyProfile, 
     loading: companyLoading, 
     error 
-  } = useCompany();
+  } = useEmployerData();
 
   const socialPlatforms = [
     { key: 'linkedin', name: 'LinkedIn', icon: 'bi-linkedin' },
@@ -39,47 +31,12 @@ const CompanyPage = () => {
     socialLinks[platform.key] && socialLinks[platform.key].trim() !== ''
   );
 
-  // ⭐ ADD AUTH CHECK AND DATA LOADING
+  // Load company profile on mount
   useEffect(() => {
-    if (!authLoading) { // ⭐ Only run when AuthContext is done loading
-      checkAuthAndLoadData();
+    if (!companyProfile) {
+      getCompanyProfile();
     }
-  }, [authLoading]); // ⭐ Add authLoading dependency
-
-  const checkAuthAndLoadData = async () => {
-    try {
-      console.log("🔍 CompanyPage Auth check - Loading:", authLoading, "Authenticated:", isAuthenticated(), "Employer:", isEmployer());
-      
-      // ⭐ Wait for auth context to finish loading
-      if (authLoading) {
-        console.log("⏳ Auth context still loading, waiting...");
-        return;
-      }
-
-      // Check if user is authenticated and is an employer
-      if (!isAuthenticated()) {
-        console.log("❌ Not authenticated, redirecting to sign-in");
-        navigate('/employer-sign-in');
-        return;
-      }
-
-      if (!isEmployer()) {
-        console.log("❌ Not an employer, redirecting to sign-in");
-        navigate('/employer-sign-in');
-        return;
-      }
-
-      console.log("✅ Auth check passed, loading company profile");
-      // Load company profile if not already loaded
-      if (!companyProfile) {
-        await getCompanyProfile();
-      }
-      
-    } catch (error) {
-      console.error("Error checking auth or loading data:", error);
-      navigate('/employer-sign-in');
-    }
-  };
+  }, []);
 
   // Use companyProfile instead of companyData
   const companyData = companyProfile;
@@ -88,8 +45,8 @@ const CompanyPage = () => {
     navigate('/edit-company-profile');
   };
 
-  // ⭐ UPDATED: Show loading state while AuthContext OR company data is loading
-  if (authLoading || companyLoading) {
+  // Show loading state while company data is loading
+  if (companyLoading) {
     return (
       <div className="min-h-screen bg-[#9B1C31] flex flex-col">
         <EmployerSideBar />
@@ -98,7 +55,7 @@ const CompanyPage = () => {
             <div className="text-center">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#9B1C31] mx-auto"></div>
               <p className="mt-4 text-gray-600">
-                {authLoading ? 'Verifying authentication...' : 'Loading company profile...'}
+                Loading company profile...
               </p>
             </div>
           </div>
@@ -135,15 +92,10 @@ const CompanyPage = () => {
   return (
     <div className="min-h-screen bg-[#9B1C31] flex flex-col">
       <EmployerSideBar />
-      <div className="flex-1 bg-[#FEFEFF] rounded-t-[40px] overflow-y-auto p-6 shadow-md">        
-        <div className="flex justify-between items-center p-4 pl-[112px] pr-[118px] mt-8">
+      <div className="flex-1 bg-[#FEFEFF] rounded-t-[40px] overflow-y-auto shadow-md">        
+        <div className="flex justify-between items-center p-4 pl-[112px] pr-[118px]">
           <div className="flex items-center gap-8">
-            <img 
-              src={ApplicantDashLogo} 
-              alt="Dashboard Logo" 
-              className="w-[136px] h-[84px]"
-            />
-            <h1 className="text-[48px] font-bold text-[#9B1C31] -mb-1">Company Profile</h1>
+            <h1 className="text-[48px] font-bold text-[#9B1C31] mt-12 -mb-8">Company Profile</h1>
           </div>
         </div>        
           

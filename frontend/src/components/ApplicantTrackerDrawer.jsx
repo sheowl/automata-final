@@ -1,7 +1,7 @@
 import CompanyDetails from "./CompanyDetails";
 import ApplicantApplicationTimeline from "./ApplicantApplicationTimeline";
 import RecruitmentProcessModal from "./RecruitmentProcessModal";
-import { getStatusDescription, getStatusLabel } from "../services/jobStatusUtils";
+import { getStatusDescription, getStatusLabel } from "../utils/statusUtils";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 

@@ -5,10 +5,8 @@ import ApplicantTracker from '../components/ApplicantTracker';
 import Dropdown from '../components/Dropdown';
 import ApplicantHeader from '../components/ApplicantHeader'; 
 import ApplicantTrackerDrawer from '../components/ApplicantTrackerDrawer'; 
-import JobDetailsDrawer from '../components/JobDetailsDrawer';
-import LoadContent from "../components/LoadContent"; 
-import { useAuth } from "../context/AuthContext";
-import { supabase } from "../services/supabaseClient";
+import JobDetailsDrawer from '../components/JobDetailsDrawer'; 
+import { useAuth } from "../hooks/useMockData";
 
 const sortOptions = [
     { label: "Most Recent", value: "recent" },
@@ -44,68 +42,23 @@ function ApplicantApplications() {
 
     // Add loading states
     const [isLoadingApplications, setIsLoadingApplications] = useState(true);
-    const [isLoadingUserData, setIsLoadingUserData] = useState(true);
     
     const navigate = useNavigate();
 
-    // Example: Fetch applications from backend or mock data
+    // Load static applications data
     useEffect(() => {
-      const fetchApplications = async () => {
-        setIsLoadingApplications(true);
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          const accessToken = session?.access_token;
-          if (!accessToken) {
-            navigate("/applicant-sign-in", { replace: true });
-            return;
-          }
+      setIsLoadingApplications(true);
+      import('../data/mockData').then(module => {
+        setApplications(module.mockApplications);
+        setIsLoadingApplications(false);
+      });
+    }, []);
 
-          const res = await fetch("http://localhost:8000/api/v1/applicants/my-applications", {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (!res.ok) {
-            throw new Error("Failed to fetch applications");
-          }
-
-          const data = await res.json();
-          setApplications(data); // Adjust if your backend returns { applications: [...] }
-        } catch (err) {
-          console.error("Error fetching applications:", err);
-          setApplications([]);
-        } finally {
-          setIsLoadingApplications(false);
-        }
-      };
-
+    // Set user first name
+    useEffect(() => {
       if (user) {
-        fetchApplications();
-      }
-    }, [navigate, user]);
-
-    // Update filtering logic to match backend field names
-    const filteredApplications = applications
-        .filter(app => 
-            (!selectedModality || app.setting === selectedModality) // Use 'setting' instead of 'modality'
-            && (!selectedWorkType || app.jobType === selectedWorkType) // Use 'jobType' instead of 'workType'
-        )
-        .sort((a, b) => {
-            if (selectedSort === "recent") {
-                return new Date(b.applicationCreatedAt || 0) - new Date(a.applicationCreatedAt || 0);
-            } else if (selectedSort === "oldest") {
-                return new Date(a.applicationCreatedAt || 0) - new Date(b.applicationCreatedAt || 0);
-            } else if (selectedSort === "best") {
-                return (b.matchScore || 0) - (a.matchScore || 0);
-            }
-            return 0;
-        });
-
-    useEffect(() => {
-      if (user && user.user_metadata && user.user_metadata.first_name) {
-        setFirstName(user.user_metadata.first_name);
+        const name = user.name || "User";
+        setFirstName(name.split(' ')[0]);
       }
     }, [user]);
 
@@ -115,31 +68,35 @@ function ApplicantApplications() {
       }
     }, [user, loading, navigate]);
 
-    // Add user data loading
-    useEffect(() => {
-      const fetchUserData = async () => {
-        if (!user) return;
-        
-        setIsLoadingUserData(true);
-        try {
-          // ...fetch user data...
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        } finally {
-          setIsLoadingUserData(false);
-        }
-      };
-
-      fetchUserData();
-    }, [user]);
+    // Update filtering logic to match backend field names
+    const filteredApplications = applications
+        .filter(app => 
+            (!selectedModality || app.setting === selectedModality) // Use 'setting' instead of 'modality'
+            && (!selectedWorkType || app.jobType === selectedWorkType) // Use 'jobType' instead of 'workType'
+        )
+        .sort((a, b) => {
+            if (selectedSort === "recent") {
+                return new Date(b.appliedDate || 0) - new Date(a.appliedDate || 0);
+            } else if (selectedSort === "oldest") {
+                return new Date(a.appliedDate || 0) - new Date(b.appliedDate || 0);
+            } else if (selectedSort === "best") {
+                return (b.matchScore || 0) - (a.matchScore || 0);
+            }
+            return 0;
+        });
 
     // Move the loading check outside of the main return, keeping only auth loading
-    if (loading || isLoadingUserData) {
+    if (loading || isLoadingApplications) {
         return (
             <div className="min-h-screen bg-[#047857] flex flex-col">
                 <ApplicantSideBar />
                 <div className="flex-1 bg-white rounded-t-[40px] overflow-y-auto p-6">
-                    <LoadContent message="Loading your applications..." />
+                <div className="flex justify-center items-center h-full">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#047857] mx-auto mb-4"></div>
+                        <div>Loading your applications...</div>
+                    </div>
+                </div>
                 </div>
             </div>
         );

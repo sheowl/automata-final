@@ -1,8 +1,8 @@
 export default function StepProgressFooter({ step, segment, onContinue, onSkip }) {
-  const totalSegments = step === 2 ? 10 : 3;
+  const totalSegments = step === 2 ? 9 : 2;
 
   const handleContinue = () => {
-    if (step === 2 && segment === 10) {
+    if (step === 2 && segment === 9) {
       // FIXED: Call onContinue first to save data, then redirect will happen from AppOnbStepTwo
       console.log("Final segment - calling onContinue to save data first");
       onContinue(); // This will call handleContinue in AppOnbStepTwo which saves data then calls onNext()
@@ -42,7 +42,7 @@ export default function StepProgressFooter({ step, segment, onContinue, onSkip }
           onClick={handleContinue} // Use the updated handleContinue function
           className="w-[192px] px-6 py-3 bg-[#047857] text-white font-bold rounded-md hover:bg-[#065F46]"
         >
-          {step === 2 && segment === 10 ? "Complete" : "Continue"}
+          {step === 2 && segment === 9 ? "Complete" : "Continue"}
         </button>
       </div>
     </div>

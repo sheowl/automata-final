@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // ⭐ ADD THIS
-import { useCompany } from "../context/CompanyContext";
-import { useTags } from "../context/TagsContext";
+import { useEmployerData } from "../hooks/useEmployerData";
+import { useTags } from "../hooks/useMockData";
 import EmployerSideBar from "../components/EmployerSideBar";
 import EmployerApplicantHeader from "../components/EmployerApplicantHeader";
 import EmpCard from "../components/EmpCard";
@@ -10,50 +9,23 @@ import ApplicationFullDetails from "../components/ApplicationFullDetails";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const fetchSortedApplicantsFromAPI = async (jobId, sortBy = 'match_score', descending = true) => {
-  try {
-    const response = await fetch(
-      `http://localhost:8000/api/v1/job-matches/job/${jobId}/sorted?sort_by=${sortBy}&descending=${descending}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add auth headers if needed
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching sorted applicants:', error);
-    throw error;
-  }
+  // Return static mock data
+  const { mockApplicants } = await import('../data/mockData');
+  return mockApplicants;
 };
 
 const EmployerApplicants = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // ⭐ ADD loading to the destructuring
+  // Use EmployerData hook for backend operations
   const { 
-    isEmployer, 
-    isAuthenticated, 
-    user,
-    loading // ⭐ ADD THIS
-  } = useAuth();
-  
-  // Use CompanyContext for backend operations
-  const { 
-    getJobApplicants, 
+    getApplicants: getJobApplicants, 
     getCompanyProfile, 
     loading: companyLoading, 
     error, 
     clearError 
-  } = useCompany();
+  } = useEmployerData();
   
   // Use TagsContext for dynamic tag display
   const { getTagNamesByIds, loading: tagsLoading } = useTags();
@@ -66,59 +38,34 @@ const EmployerApplicants = () => {
   const [showApplicationDetails, setShowApplicationDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
-  const [authChecked, setAuthChecked] = useState(false);
   
   // Get job posts data from navigation state
   const jobPostsData = location.state?.jobPosts || [];
   const selectedJob = location.state?.selectedJob;
   const selectedJobId = location.state?.selectedJobId;
 
-  // ⭐ ONLY CHANGE: Update the first useEffect
+  // Load data on mount
   useEffect(() => {
-    if (!loading) { // ⭐ Only run when AuthContext is done loading
-      checkAuthenticationAndLoadData();
-    }
-  }, [loading]); // ⭐ Change dependency from [] to [loading]
+    loadInitialData();
+  }, []);
 
-  // ⭐ STEP 2: Load applicants when job changes (after auth is confirmed)
+  // Load applicants when job changes
   useEffect(() => {
-    if (authChecked && isAuthenticated() && isEmployer()) {
-      loadApplicantsData();
-    }
-  }, [selectedJobNumber, authChecked, sortBy]); // Added sortBy dependency
+    loadApplicantsData();
+  }, [selectedJobNumber, sortBy]); // Added sortBy dependency
 
-  const checkAuthenticationAndLoadData = async () => {
+  const loadInitialData = async () => {
     try {
       setIsLoading(true);
       setFetchError("");
       clearError();
-
-      // Check if user is authenticated and is an employer
-      if (!isAuthenticated()) {
-        navigate('/employer-sign-in');
-        return;
-      }
-
-      if (!isEmployer()) {
-        navigate('/employer-sign-in');
-        return;
-      }
-      
-      // Verify backend connection with company profile
-      try {
-        const profileResponse = await getCompanyProfile();
-      } catch (profileError) {
-        // Proceed even if backend connection has issues
-      }
-      
-      setAuthChecked(true);
       
       // Initialize job selection
       await initializeJobSelection();
       
     } catch (error) {
-      setFetchError("Authentication error. Please log in again.");
-      navigate('/employer-sign-in');
+      console.error('Error loading initial data:', error);
+      setFetchError("Failed to load applicants data.");
     } finally {
       setIsLoading(false);
     }
@@ -186,7 +133,10 @@ const EmployerApplicants = () => {
       }
 
       // **STEP 2: Fetch detailed applicant data (your existing logic)**
-      const response = await getJobApplicants(selectedJobNumber);
+      const applicantsData = await getJobApplicants(selectedJobNumber);
+      
+      // Get job details for job title
+      const currentJob = jobPostsData.find(job => job.id === selectedJobNumber || job.job_id === selectedJobNumber);
 
       // **STEP 3: Transform and merge the data**
       let transformedApplicants;
@@ -195,7 +145,7 @@ const EmployerApplicants = () => {
         // **Use API-sorted order with merge sort algorithm results**
         transformedApplicants = sortedJobMatches.map((jobMatch, index) => {
           // Find matching applicant data
-          const applicantData = response.applicants?.find(
+          const applicantData = applicantsData?.find(
             app => app.applicant_id === jobMatch.applicant_id
           );
 
@@ -211,7 +161,7 @@ const EmployerApplicants = () => {
             id: applicantData.applicant_id || `${selectedJobNumber}-${index}`,
             applicant_id: applicantData.applicant_id,
             jobNumber: selectedJobNumber,
-            jobTitle: response.job_title || 'Job Post',
+            jobTitle: currentJob?.job_title || 'Job Post',
             matched: jobMatch.match_score || applicantData.match_score || 0, // Use API match score
             isNew: new Date() - new Date(applicantData.application_created_at) < 24 * 60 * 60 * 1000,
             candidateName: applicantData.name || 'Unknown Applicant',
@@ -237,14 +187,14 @@ const EmployerApplicants = () => {
         console.log(`✅ Applied merge sort algorithm results: ${transformedApplicants.length} applicants sorted by ${sortConfig.field}`);
       } else {
         // **Fallback: Transform without API sorting (your existing logic)**
-        transformedApplicants = (response.applicants || []).map((applicant, index) => {
+        transformedApplicants = (applicantsData || []).map((applicant, index) => {
           const tagNames = getTagNamesByIds(applicant.applicant_tags || []);
           
           return {
             id: applicant.applicant_id || `${selectedJobNumber}-${index}`,
             applicant_id: applicant.applicant_id,
             jobNumber: selectedJobNumber,
-            jobTitle: response.job_title || 'Job Post',
+            jobTitle: currentJob?.job_title || 'Job Post',
             matched: applicant.match_score || 0,
             isNew: new Date() - new Date(applicant.application_created_at) < 24 * 60 * 60 * 1000,
             candidateName: applicant.name || 'Unknown Applicant',
@@ -334,7 +284,7 @@ const EmployerApplicants = () => {
             <div className="text-center">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#9B1C31] mx-auto"></div>
               <div className="text-lg font-semibold text-gray-600 mt-4">
-                {!authChecked ? 'Verifying authentication...' : 'Loading applicants...'}
+                Loading applicants...
               </div>
             </div>
           </div>
@@ -354,42 +304,12 @@ const EmployerApplicants = () => {
               <div className="text-lg font-semibold mb-4">Error Loading Applicants</div>
               <div className="mb-4">{fetchError || error}</div>
               
-              {/* ⭐ DEBUG INFO */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="bg-gray-100 p-4 rounded mb-4 text-xs text-left max-w-md mx-auto">
-                  <div><strong>Debug Info:</strong></div>
-                  <div>Auth Checked: {authChecked ? '✅ Yes' : '❌ No'}</div>
-                  <div>Is Authenticated: {isAuthenticated() ? '✅ Yes' : '❌ No'}</div>
-                  <div>Is Employer: {isEmployer() ? '✅ Yes' : '❌ No'}</div>
-                  <div>User: {user ? '✅ Present' : '❌ Missing'}</div>
-                </div>
-              )}
-              
               <button 
                 onClick={handleRetry}
                 className="bg-[#9B1C31] text-white px-6 py-2 rounded-lg hover:bg-[#7D1628] transition"
               >
                 Retry
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ⭐ ADD: Show loading state while AuthContext loads
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#9B1C31] flex flex-col">
-        <EmployerSideBar />
-        <div className="flex-1 bg-[#FEFEFF] rounded-t-[40px] overflow-y-auto p-6 shadow-md">
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9B1C31] mx-auto mb-4"></div>
-              <p className="text-[#6B7280] text-lg">
-                {loading ? 'Verifying authentication...' : 'Loading Applicants...'}
-              </p>
             </div>
           </div>
         </div>

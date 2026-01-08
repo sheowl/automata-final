@@ -1,5 +1,6 @@
 // Tag data structure for categories and their tags
-const TAGS = {
+// This will be used as a reference even when backend is implemented
+export const TAG_CATEGORIES = {
   "Programming Languages": [
     "Python", "Java", "JavaScript", "C++", "C#", "Go", "Rust", "PHP", "TypeScript", "Ruby", "Kotlin", "Swift", "R", "Bash/Shell"
   ],
@@ -26,4 +27,42 @@ const TAGS = {
   ]
 };
 
-export default TAGS;
+// Category mapping for backend integration
+export const CATEGORY_IDS = {
+  "Programming Languages": 1,
+  "AI/ML/Data Science": 2,
+  "Web Development": 3,
+  "DevOps": 4,
+  "Mobile Development": 5,
+  "Databases": 6,
+  "Cybersecurity": 7,
+  "Soft Skills": 8
+};
+
+// Helper function to get category name by ID
+export const getCategoryById = (categoryId) => {
+  const entry = Object.entries(CATEGORY_IDS).find(([_, id]) => id === categoryId);
+  return entry ? entry[0] : "Unknown Category";
+};
+
+// Helper function to get all tags as flat array
+export const getAllTags = () => {
+  return Object.values(TAG_CATEGORIES).flat();
+};
+
+// Helper function to get tags by category name
+export const getTagsByCategory = (categoryName) => {
+  return TAG_CATEGORIES[categoryName] || [];
+};
+
+// Helper function to get category for a specific tag
+export const getCategoryForTag = (tagName) => {
+  for (const [category, tags] of Object.entries(TAG_CATEGORIES)) {
+    if (tags.includes(tagName)) {
+      return category;
+    }
+  }
+  return null;
+};
+
+export default TAG_CATEGORIES;

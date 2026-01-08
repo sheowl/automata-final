@@ -1,6 +1,4 @@
 import React from "react";
-import SaveButton from "./SaveButton";
-import Tag from "./JobSkillTag";
 
 export default function CompanyDetails({ open, onClose, job, onApply, userType = "applicant" }) {
   // Debug logging

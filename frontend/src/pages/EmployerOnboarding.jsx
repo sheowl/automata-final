@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useCompany } from '../context/CompanyContext';
+import { useAuth } from "../hooks/useMockData";
+import { useEmployerData } from "../hooks/useEmployerData";
 
 const EmployerOnboarding = () => {
   const navigate = useNavigate();
@@ -15,9 +15,6 @@ const EmployerOnboarding = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Use AuthContext for authentication only
-  const { isEmployer, isAuthenticated } = useAuth();
-
   // Use CompanyContext for company operations
   const { 
     getOnboardingStatus, 
@@ -28,22 +25,11 @@ const EmployerOnboarding = () => {
   } = useCompany();
 
   useEffect(() => {
-    checkOnboardingAndRedirect();
+    checkOnboarding();
   }, []);
 
-  const checkOnboardingAndRedirect = async () => {
+  const checkOnboarding = async () => {
     try {
-      // Check if user is authenticated and is an employer
-      if (!isAuthenticated()) {
-        navigate('/employer-sign-in');
-        return;
-      }
-
-      if (!isEmployer()) {
-        navigate('/employer-sign-in');
-        return;
-      }
-
       // Clear any previous errors
       setError('');
       clearError();
@@ -161,7 +147,6 @@ const EmployerOnboarding = () => {
         <div className="w-full px-0">
           <div className="flex justify-start items-center">            
             <div className="flex items-center mt-10 ml-[112px]">
-              <img src="/src/assets/TugmaLogo.svg" alt="Tugma" className="w-[192px] h-[60px]" />
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
-import React from 'react';
-import { useTags } from '../context/TagsContext';
+import React from "react";
+import { useTags } from "../hooks/useMockData";
 
 // Component for displaying tags in a categorized format
 export const TagsDisplay = ({ 
@@ -43,8 +43,8 @@ export const TagsDisplay = ({
                 onClick={() => onTagSelect && onTagSelect(tag.tag_id)}
                 className={`px-3 py-1 rounded-full text-[13px] font-semibold transition-colors border-2 ${
                   selectedTags.includes(tag.tag_id)
-                    ? 'bg-[#9B1C31] text-white border-[#9B1C31]'
-                    : 'bg-[#FFF6F0] text-[#9B1C31] border-[#9B1C31] hover:bg-[#FFE0C2]'
+                    ? "bg-[#9B1C31] text-white border-[#9B1C31]"
+                    : "bg-[#FFF6F0] text-[#9B1C31] border-[#9B1C31] hover:bg-[#FFE0C2]"
                 }`}
               >
                 {selectedTags.includes(tag.tag_id) ? (
