@@ -264,17 +264,6 @@ const JobDetailsDrawer = ({ open, onClose, job, onApply }) => {
                       </div>
                     )}
 
-                    {/* Skill Match Visualization */}
-                    <div className="my-6">
-                      <SkillMatchVisualization
-                        jobTags={matchDetails?.job_tags || job.job_tags || []}
-                        applicantTags={matchDetails?.applicant_tags || []}
-                        matchScore={job.match_score || 0}
-                        jobTitle={jobData.job_title}
-                        showDetails={true}
-                      />
-                    </div>
-
                     {/* Apply Button */}
                     <div className="w-full flex justify-center pt-6">
                       <button

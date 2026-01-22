@@ -116,36 +116,7 @@ export default function ApplicantTrackerDrawer({ open, onClose, job, onViewDetai
           )}
         </div>
 
-        {/* Bottom Status Section */}
-        {job && (
-          <div className="px-10">
-            <StatusDetailsBox
-              status={getStatusLabel(job.status)}
-              message={getStatusDescription(job.status)}
-            >
-              <div className="flex gap-3 mt-3">
-                {job.status === "interview" && (
-                  <button
-                    onClick={() => {
-                      setShowInterviewDetails(true);
-                      setInterviewAction(null); // reset
-                    }}
-                    className="flex-1 px-4 py-2 bg-white text-[#047857] font-bold text-xs rounded-[8px] hover:bg-emerald-50 transition-colors"
-                  >
-                    View Interview Details
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowRecruitmentModal(true)}
-                  className="flex-1 px-4 py-2 bg-white text-[#047857] font-bold text-xs rounded-[8px] hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2"
-                >
-                  <i className="bi bi-diagram-3-fill" />
-                  Process Flow
-                </button>
-              </div>
-            </StatusDetailsBox>
-          </div>
-        )}
+        
       </div>
 
       {/* Interview Modal */}
@@ -222,16 +193,7 @@ export default function ApplicantTrackerDrawer({ open, onClose, job, onViewDetai
         job={job}
       />
 
-      {/* Recruitment Process Modal */}
-      <RecruitmentProcessModal
-        isOpen={showRecruitmentModal}
-        onClose={() => setShowRecruitmentModal(false)}
-        currentStatus={job?.status || 'not_applied'}
-        applicationDate={job?.applicationDate}
-        interviewDate={job?.interviewDate}
-        rejectionDate={job?.rejectionDate}
-        acceptedDate={job?.acceptedDate}
-      />
+      
     </>
   );
 }
