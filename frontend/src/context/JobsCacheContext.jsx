@@ -25,11 +25,11 @@ export const JobsCacheProvider = ({ children }) => {
     
     // Return cached data if valid and not forcing refresh
     if (!forceRefresh && lastFetched && (now - lastFetched) < CACHE_DURATION && jobs.length > 0) {
-      console.log('📦 Using cached jobs data, age:', Math.round((now - lastFetched) / 1000), 'seconds');
+
       return { data: jobs, error: null, fromCache: true };
     }
     
-    console.log('🔄 Fetching fresh jobs from Supabase...');
+
     setLoading(true);
     
     try {
@@ -43,7 +43,7 @@ export const JobsCacheProvider = ({ children }) => {
         return { data: null, error, fromCache: false };
       }
       
-      console.log('✅ Jobs fetched and cached, count:', data?.length);
+
       setJobs(data || []);
       setLastFetched(now);
       setLoading(false);
@@ -58,13 +58,13 @@ export const JobsCacheProvider = ({ children }) => {
 
   // Invalidate cache (call after creating/updating/deleting jobs)
   const invalidateCache = useCallback(() => {
-    console.log('🗑️ Jobs cache invalidated');
+
     setLastFetched(null);
   }, []);
 
   // Clear cache completely
   const clearCache = useCallback(() => {
-    console.log('🗑️ Jobs cache cleared');
+
     setJobs([]);
     setLastFetched(null);
   }, []);

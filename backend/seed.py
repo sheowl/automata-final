@@ -120,15 +120,6 @@ def seed_data():
     
     # Step 1: Create auth users
     employer_id = create_test_auth_users()
-
-    # 1. Clear existing data (if any) - Optional, be careful in real apps!
-    # For MVP, we might just assume empty or delete all.
-    # supabase.table('jobs').delete().neq('id', 0).execute() # Hacky delete all
-    # supabase.table('applicants').delete().neq('id', 0).execute()
-
-    # NOTE: Since Supabase delete all requires a policy or careful filter, 
-    # we'll skip auto-wipe for now to stay safe, or user can assume fresh DB.
-    # Alternatively, we can insert and ignore duplicates if IDs match.
     
     # Step 2: Seed Jobs (linked to employer)
     print("\n=== Seeding Jobs ===")
@@ -236,10 +227,6 @@ def seed_data():
     
     if len(job_ids) > 0 and len(applicant_ids) > 0:
         # Map applicants to appropriate jobs based on skills
-        # Python Job (job_ids[0]): Alice, Bob, Charlie, Eve, Judy
-        # Frontend Job (job_ids[1]): Dave, Heidi (relevant applicants)
-        # Data Science Job (job_ids[2]): Frank, Grace (relevant applicants)
-        
         python_job_id = job_ids[0]
         frontend_job_id = job_ids[1] if len(job_ids) > 1 else python_job_id
         ds_job_id = job_ids[2] if len(job_ids) > 2 else python_job_id

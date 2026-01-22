@@ -1,6 +1,5 @@
 """
 Quick test to verify database UPDATE permissions work correctly.
-Run this AFTER applying the RLS fix (docs/fix_rls_update_policy.sql)
 """
 
 from database import get_supabase_client

@@ -1,5 +1,4 @@
 # merge sort algorithm implementation
-# Ported from Tugma
 
 import time
 

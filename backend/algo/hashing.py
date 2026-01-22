@@ -1,5 +1,4 @@
 # hashing algorithm for the backend
-# Ported from Tugma
 
 # FNV-1a Hashing Algorithm Implementation
 def fnv1a_hash(data: str) -> int:
@@ -66,7 +65,6 @@ class TagMatcher:
 
         # Apply the weighted formula
         # Match Score = (|A ∩ J| / |J|) * 70% + (|A ∩ J| / |A|) * 30%
-        # NOTE: logic from original tugma code
         score = (
             (intersection / len(self.job_tags)) * 70 +
             (intersection / len(self.applicant_tags)) * 30

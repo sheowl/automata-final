@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
   // Fetch user profile with timeout
   const fetchProfile = async (userId) => {
     try {
-      console.log('Fetching profile for user:', userId);
       
       // Create a promise that rejects after timeout
       const timeoutPromise = new Promise((_, reject) => 
@@ -39,7 +38,6 @@ export const AuthProvider = ({ children }) => {
         console.error('Error fetching profile:', error);
         return null;
       }
-      console.log('Profile fetched successfully:', data?.email);
       return data;
     } catch (err) {
       console.error('Exception fetching profile:', err.message);
@@ -53,13 +51,11 @@ export const AuthProvider = ({ children }) => {
 
     // Initial session check
     const initAuth = async () => {
-      console.log('initAuth starting...');
       
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!mounted) return;
-        console.log('Session check complete, user:', session?.user?.email);
 
         if (session?.user) {
           setUser(session.user);
@@ -75,7 +71,6 @@ export const AuthProvider = ({ children }) => {
         console.error("Auth init error:", e);
       } finally {
         if (mounted) {
-          console.log('initAuth complete, setting loading to false');
           setLoading(false);
           isInitializing = false;
         }
@@ -89,11 +84,9 @@ export const AuthProvider = ({ children }) => {
       async (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state changed:', event, session?.user?.email, 'isInitializing:', isInitializing);
         
         // Skip ALL events during initialization - initAuth handles everything
         if (isInitializing) {
-          console.log('Skipping event during initialization');
           return;
         }
         

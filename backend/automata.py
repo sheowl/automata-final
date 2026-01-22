@@ -45,14 +45,8 @@ class SkillValidationDFA:
             else:
                 self.state = 'q_partial'
         else:
-            # Tag is optional or irrelevant. 
-            # In a strict DFA where *sequence* matters, this might be a fail.
-            # But here we are checking for SET membership.
-            # So irrelevant tags usually don't change state (Self-loop),
-            # UNLESS instructions imply strict penalties. 
-            # Instructions say: "verify that ALL 'Required' tags... exist".
-            # It doesn't explicitly say extra tags cause rejection.
-            # So we self-loop on q0 or q_partial.
+        else:
+            # Tag is optional or irrelevant. Set membership check does not penalize extra tags.
             pass
             
         self.history.append(f"State: {self.state} (Found: {len(self.found_tags)}/{len(self.required_tags)})")
@@ -76,18 +70,8 @@ class SkillValidationDFA:
         for tag in applicant_skills:
             self.transition(tag)
             
-        # Final Check
-        # If after consuming all inputs, we are not in q_matched,
-        # it means we are missing tags.
-        # The 'Trap State' logic in a set-based check is tricky.
-        # Usually, a DFA rejects at the END if not in accept state.
-        # BUT, if we wanted to fail EARLY (e.g. "Tag not allowed"), that would be a trap.
-        # Since we are just checking for *presence*, 'q_rejected' logic 
-        # is actually determined *after* the loop if we remain in q0 or q_partial.
-        
-        # HOWEVER, let's strictly follow the file:
-        # "q_rejected (Trap State - missing a required tag)"
-        # This implies if we finish and haven't matched, it is rejected.
+        # Final Check: Determine if the result is a match, partial match, or rejection.
+        # If not matched or partially matched at the end, transition to rejected.
         
         if self.state not in ['q_matched', 'q_partial']:
             self.state = 'q_rejected'

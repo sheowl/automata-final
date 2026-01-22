@@ -279,14 +279,6 @@ const EmployerHomePage = () => {
           ) : (
             <div className="space-y-0">
               {applicantsToShow.map((applicant, index) => {
-                // Add this debug log
-                console.log('🔍 Applicant match score debug:', {
-                  name: applicant.name,
-                  match_percentage: applicant.match_percentage,
-                  match_score: applicant.match_score,
-                  position: applicant.position
-                });
-                
                 return (
                   <div key={applicant.id} className="flex items-start gap-4 relative">
                     

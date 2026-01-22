@@ -6,7 +6,6 @@ def test_dfa():
     supabase = get_supabase_client()
     
     # 1. Fetch one job (e.g., Python Developer)
-    # We want the one with title "Senior Python Developer"
     job_response = supabase.table('jobs').select("*").eq('title', 'Senior Python Developer').execute()
     if not job_response.data:
         print("Job not found. Did you seed?")
@@ -34,7 +33,6 @@ def test_dfa():
         final_state = dfa.process_applicant(app['skill_tags_json'])
         
         print(f"Final State: {final_state}")
-        # print("Logs:", dfa.get_logs()) # Uncomment for debug
         
         if final_state == 'q_matched':
             print(">> STATUS: MATCHED (Ready for Scoring)")

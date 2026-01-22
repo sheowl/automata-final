@@ -67,7 +67,6 @@ export const useEmployerData = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('📝 Updating company profile:', updates);
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -77,7 +76,6 @@ export const useEmployerData = () => {
         ...updates
       };
       
-      console.log('✅ Company profile updated:', sharedEmployerState.companyProfile);
       notifySubscribers();
       return sharedEmployerState.companyProfile;
     } catch (err) {
@@ -123,7 +121,7 @@ export const useEmployerData = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('📝 Creating job post:', jobData);
+
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
@@ -148,7 +146,6 @@ export const useEmployerData = () => {
         activePostings: sharedEmployerState.jobPosts.filter(j => j.status === 'active').length
       };
       
-      console.log('✅ Job post created:', newJob);
       notifySubscribers();
       return newJob;
     } catch (err) {
@@ -163,7 +160,6 @@ export const useEmployerData = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('📝 Updating job post:', jobId, updates);
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
@@ -177,7 +173,6 @@ export const useEmployerData = () => {
         j.id === jobId || j.job_id === jobId
       );
       
-      console.log('✅ Job post updated:', updatedJob);
       notifySubscribers();
       return updatedJob;
     } catch (err) {
@@ -192,7 +187,6 @@ export const useEmployerData = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('🗑️ Deleting job post:', jobId);
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
@@ -207,7 +201,6 @@ export const useEmployerData = () => {
         activePostings: sharedEmployerState.jobPosts.filter(j => j.status === 'active').length
       };
       
-      console.log('✅ Job post deleted');
       notifySubscribers();
     } catch (err) {
       setError(err.message);
@@ -252,7 +245,6 @@ export const useEmployerData = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('📝 Updating applicant status:', applicantId, newStatus);
       
       await new Promise(resolve => setTimeout(resolve, 300));
       
@@ -262,7 +254,6 @@ export const useEmployerData = () => {
           : app
       );
       
-      console.log('✅ Applicant status updated');
       notifySubscribers();
     } catch (err) {
       setError(err.message);

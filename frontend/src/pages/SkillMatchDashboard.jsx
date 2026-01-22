@@ -21,7 +21,6 @@ const SkillMatchDashboard = () => {
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  console.log('SkillMatchDashboard render - loading:', loading, 'jobs:', jobs.length);
 
   // Handle Recruitment Actions (Mimics Python DFA)
   const handleRecruitmentAction = async (action) => {
@@ -81,13 +80,10 @@ const SkillMatchDashboard = () => {
   // Handle adding new job
   const handleAddJob = async (jobData) => {
     try {
-      console.log('Creating new job:', jobData);
-      
+
       // Create job using EmployerData hook
       const newJob = await createJobPost(jobData);
-      
-      console.log('Job created successfully:', newJob);
-      
+
       // Close modal and refresh jobs
       setShowModal(false);
       
@@ -142,16 +138,12 @@ const SkillMatchDashboard = () => {
   // Fetch initial data using cache
   useEffect(() => {
     let isMounted = true;
-    console.log('SkillMatchDashboard useEffect triggered');
     
     const fetchData = async () => {
-      console.log('SkillMatchDashboard fetchData starting...');
       setLoading(true);
       
       // Use cached fetch instead of direct Supabase call
       const { data: jobsData, error: jobsError, fromCache } = await fetchJobs();
-      
-      console.log('Jobs fetch result:', { jobsData, jobsError, fromCache });
       
       if (jobsError) {
         console.error('Error fetching jobs:', jobsError);
@@ -160,7 +152,6 @@ const SkillMatchDashboard = () => {
       }
       
       if (isMounted) {
-        console.log('Setting jobs data, count:', jobsData?.length);
         setJobs(jobsData || []);
         setLoading(false);
       }
