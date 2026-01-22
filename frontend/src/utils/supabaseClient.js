@@ -7,4 +7,10 @@ if (!supabaseUrl || !supabaseKey) {
   console.error("Missing Supabase URL or Key. Check your .env file.")
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+})

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import { useAuth } from "../hooks/useMockData";
+import { useAuth } from "../context/AuthContext";
 
 const Employer_SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,12 +10,23 @@ const Employer_SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   
-  const { companyLogin } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate("/employerhomepage");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await signIn(email, password);
+      navigate("/employerhomepage");
+    } catch (err) {
+      console.error('Sign in error:', err);
+      setError(err.message || "Failed to sign in. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -65,7 +76,7 @@ const Employer_SignIn = () => {
             <button
               type="button"
               tabIndex={-1}
-              className="absolute top-2 right-3 sm:top-[12%] sm:right-4 transform -translate-y-1/2 focus:outline-none"
+              className="absolute top-2 right-3 focus:outline-none"
               onClick={() => setShowPassword((prev) => !prev)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               disabled={isLoading}

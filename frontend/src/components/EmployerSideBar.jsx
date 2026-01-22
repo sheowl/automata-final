@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
     { icon: 'bi-house', label: 'Home Page', path: '/EmployerHomePage', key: 'homepage' },
@@ -11,6 +12,20 @@ const navItems = [
 const EmployerSideBar = ({ activePage }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { signOut } = useAuth();
+
+    const handleLogout = async () => {
+        console.log('Logout button clicked');
+        try {
+            await signOut();
+            console.log('signOut completed, navigating...');
+            navigate('/employer-sign-in', { replace: true });
+        } catch (error) {
+            console.error('Logout error:', error);
+            navigate('/employer-sign-in', { replace: true });
+        }
+    };
+
     const getActiveIndex = () => {
         if (activePage) {
             // Find by key
@@ -62,13 +77,14 @@ const EmployerSideBar = ({ activePage }) => {
             </nav>
 
             {/* Logout Button */}
-            <NavLink 
-                to="/employer-sign-in"
-                className="flex items-center gap-2 px-6 py-3 text-white text-base cursor-pointer hover:bg-[#7D1628] rounded-[10px] font-bold"
+            <button 
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-6 py-3 text-white text-base cursor-pointer hover:bg-[#7D1628] rounded-[10px] font-bold relative z-50"
             >
                 <i className="bi bi-box-arrow-right text-xl"></i>
                 <span>Logout</span>
-            </NavLink>
+            </button>
         </div>
     );
 };

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import AppHeader from "../components/AppHeader";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const AppComReg = () => {
   const [email, setEmail] = useState("");
@@ -15,10 +16,40 @@ const AppComReg = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    navigate("/applicantonboarding");
+    setError("");
+
+    // Validation
+    if (password !== ConfirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    if (!agreed) {
+      setError("Please agree to the Terms of Service and Privacy Policy");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const fullName = `${firstName} ${lastName}`;
+      await signUp(email, password, 'applicant', fullName);
+      navigate("/applicantonboarding");
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError(err.message || "Failed to create account. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

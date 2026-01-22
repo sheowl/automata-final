@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import { useAuth } from "../hooks/useMockData";
+import { useAuth } from "../context/AuthContext";
 
 const Applicant_SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -9,11 +9,12 @@ const Applicant_SignIn = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { applicantLogin } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleGoogleSignIn = () => {
-    navigate("/applicantbrowsejobs");
+    // TODO: Implement Google OAuth later
+    alert("Google Sign-In coming soon!");
   };
 
   return (
@@ -25,9 +26,20 @@ const Applicant_SignIn = () => {
         </h1>
         <form
           className="space-y-3 sm:space-y-4 w-full flex flex-col items-center justify-center"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            navigate("/applicantbrowsejobs");
+            setError("");
+            setIsLoading(true);
+
+            try {
+              await signIn(username, password);
+              navigate("/applicantbrowsejobs");
+            } catch (err) {
+              console.error('Sign in error:', err);
+              setError(err.message || "Failed to sign in. Please check your credentials.");
+            } finally {
+              setIsLoading(false);
+            }
           }}
         >
           <div className="w-full max-w-xs sm:max-w-xs md:max-w-md">

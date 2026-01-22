@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { useJobsCache } from '../context/JobsCacheContext';
 import EmployerSideBar from '../components/EmployerSideBar';
 import { 
   BriefcaseIcon, 
@@ -9,11 +10,14 @@ import {
 } from "@heroicons/react/24/outline";
 
 const SkillMatchDashboard = () => {
+  const { fetchJobs, jobs: cachedJobs, loading: cacheLoading } = useJobsCache();
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
+
+  console.log('SkillMatchDashboard render - loading:', loading, 'jobs:', jobs.length);
 
   // Handle Recruitment Actions (Mimics Python DFA)
   const handleRecruitmentAction = async (action) => {
@@ -109,25 +113,42 @@ const SkillMatchDashboard = () => {
       setSelectedApplicant(null); // Reset selection
   }, [selectedJob]);
 
-  // Fetch initial data
+  // Fetch initial data using cache
   useEffect(() => {
+    let isMounted = true;
+    console.log('SkillMatchDashboard useEffect triggered');
+    
     const fetchData = async () => {
+      console.log('SkillMatchDashboard fetchData starting...');
       setLoading(true);
-      // Fetch Jobs
-      const { data: jobsData, error: jobsError } = await supabase
-        .from('jobs')
-        .select('*');
       
-      if (jobsError) console.error('Error fetching jobs:', jobsError);
-      else {
-          setJobs(jobsData || []);
-          if (jobsData && jobsData.length > 0) setSelectedJob(jobsData[0]);
+      // Use cached fetch instead of direct Supabase call
+      const { data: jobsData, error: jobsError, fromCache } = await fetchJobs();
+      
+      console.log('Jobs fetch result:', { jobsData, jobsError, fromCache });
+      
+      if (jobsError) {
+        console.error('Error fetching jobs:', jobsError);
+        if (isMounted) setLoading(false);
+        return;
       }
-      setLoading(false);
+      
+      if (isMounted) {
+        console.log('Setting jobs data, count:', jobsData?.length);
+        setJobs(jobsData || []);
+        if (jobsData && jobsData.length > 0 && !selectedJob) {
+          setSelectedJob(jobsData[0]);
+        }
+        setLoading(false);
+      }
     };
 
     fetchData();
-  }, []);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchJobs]);
 
   // Helper for match colors
   const getMatchColor = (score) => {

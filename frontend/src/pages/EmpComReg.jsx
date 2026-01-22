@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import EmpHeader from "../components/EmpHeader";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const EmpComReg = () => {
   const [email, setEmail] = useState("");
@@ -14,10 +15,39 @@ const EmpComReg = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    navigate("/employeronboarding");
+    setError("");
+
+    // Validation
+    if (password !== ConfirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    if (!agreed) {
+      setError("Please agree to the Terms of Service and Privacy Policy");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await signUp(email, password, 'employer', companyName);
+      navigate("/employeronboarding");
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError(err.message || "Failed to create account. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
