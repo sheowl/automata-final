@@ -270,7 +270,7 @@ const EmployerHomePage = () => {
                 Applications will appear here when candidates apply to your jobs.
               </p>
               <button 
-                onClick={() => navigate('/employerjobposts')}
+                onClick={() => navigate('/skillmatch')}
                 className="mt-4 px-6 py-2 bg-[#9B1C31] text-white rounded-lg hover:bg-[#7D1628] transition-colors"
               >
                 Post a Job

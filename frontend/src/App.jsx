@@ -14,7 +14,6 @@ import ApplicantInbox from "./pages/ApplicantInbox.jsx";
 import ApplicantProfile from "./pages/ApplicantProfile.jsx";
 import EmployerApplicants from "./pages/EmployerApplicants.jsx";
 import EmployerHomePage from "./pages/EmployerHomePage.jsx";
-import EmployerJobPosts from "./pages/EmployerJobPosts.jsx";
 import ApplicantOnboarding from "./pages/ApplicantOnboarding.jsx";
 import EmployerOnboarding from "./pages/EmployerOnboarding.jsx";
 import CompanyPage from "./pages/CompanyPage.jsx";
@@ -79,11 +78,6 @@ function App() {
             <Route path="/employerapplicants" element={
               <ProtectedRoute requireRole="employer">
                 <EmployerApplicants />
-              </ProtectedRoute>
-            } />
-            <Route path="/employerjobposts" element={
-              <ProtectedRoute requireRole="employer">
-                <EmployerJobPosts />
               </ProtectedRoute>
             } />
             <Route path="/employeronboarding" element={

@@ -73,16 +73,8 @@ function Card({
   return (
     <div className="bg-white shadow-all-around rounded-[20px] p-6 w-[350px] max-w-[350px] h-[330px] flex flex-col 
     justify-between relative transition transform duration-300 ease-in-out hover:scale-102">
-      {/* Match Score */}
-      <div className="flex justify-end items-center">
-        <div className={`text-end text-xl font-bold leading-tight ${matchScoreColor}`}>
-          <div className="text-xl">{matchScore}%</div>
-          <div className="text-sm font-bold -mt-[10%]">Matched</div>
-        </div>
-      </div>
-
       {/* Title, Company, Location */}
-      <div className="space-y-0 -mt-[5%]">
+      <div className="space-y-0">
         <h2 className="text-2xl font-bold text-black leading-tight">{jobTitle}</h2>
         <h3 className="text-sm font-bold text-[#676767]">{companyName}</h3>
         <p className="text-[10px] text-[#676767]">{location}</p>

@@ -94,8 +94,8 @@ const EmployerApplicantHeader = ({
     <div className="mt-6 bg-white relative">    
     <button
         className="absolute top-8 left-8 text-3xl text-[#9B1C31] hover:text-[#7D1628]"
-        onClick={() => navigate('/EmployerJobPosts')}
-        aria-label="Go back to job posts"
+        onClick={() => navigate('/skillmatch')}
+        aria-label="Go back to skill match"
       >
         <i className="bi bi-arrow-left text-[52px]" />
       </button>

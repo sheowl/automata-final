@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 
 const navItems = [
     { icon: 'bi-house', label: 'Home Page', path: '/EmployerHomePage', key: 'homepage' },
-    { icon: 'bi-clipboard2', label: 'Job Posts', path: '/EmployerJobPosts', key: 'jobposts' },
     { icon: 'bi-cpu', label: 'SkillMatch', path: '/skillmatch', key: 'skillmatch' },
     { icon: 'bi-building-gear', label: 'Company', path: '/CompanyPage', key: 'company' },
 ];
@@ -33,9 +32,9 @@ const EmployerSideBar = ({ activePage }) => {
             if (foundByKey !== -1) return foundByKey;
         }
         const currentPath = location.pathname.toLowerCase();
-        // If on employerapplicants page, highlight Job Posts
+        // If on employerapplicants page, highlight SkillMatch
         if (currentPath === '/employerapplicants') {
-            return 1; // Job Posts index
+            return 1; // SkillMatch index
         }
         
         // If on edit-company-profile page, highlight Company (same as CompanyPage)

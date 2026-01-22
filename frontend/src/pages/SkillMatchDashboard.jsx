@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { useJobsCache } from '../context/JobsCacheContext';
+import { useEmployerData } from '../hooks/useEmployerData';
 import EmployerSideBar from '../components/EmployerSideBar';
+import JobNewPost from '../components/JobNewPost';
 import { 
   BriefcaseIcon, 
   CheckCircleIcon, 
@@ -11,11 +13,13 @@ import {
 
 const SkillMatchDashboard = () => {
   const { fetchJobs, jobs: cachedJobs, loading: cacheLoading } = useJobsCache();
+  const { createJobPost, companyProfile } = useEmployerData();
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   console.log('SkillMatchDashboard render - loading:', loading, 'jobs:', jobs.length);
 
@@ -72,6 +76,28 @@ const SkillMatchDashboard = () => {
           ));
           setSelectedApplicant(updatedApp);
       }
+  };
+
+  // Handle adding new job
+  const handleAddJob = async (jobData) => {
+    try {
+      console.log('Creating new job:', jobData);
+      
+      // Create job using EmployerData hook
+      const newJob = await createJobPost(jobData);
+      
+      console.log('Job created successfully:', newJob);
+      
+      // Close modal and refresh jobs
+      setShowModal(false);
+      
+      // Refresh the jobs list
+      await fetchJobs();
+      
+    } catch (error) {
+      console.error("Error creating job:", error);
+      alert(error.message || "Failed to create job. Please try again.");
+    }
   };
 
   // Fetch Applicants when selectedJob changes
@@ -136,9 +162,6 @@ const SkillMatchDashboard = () => {
       if (isMounted) {
         console.log('Setting jobs data, count:', jobsData?.length);
         setJobs(jobsData || []);
-        if (jobsData && jobsData.length > 0 && !selectedJob) {
-          setSelectedJob(jobsData[0]);
-        }
         setLoading(false);
       }
     };
@@ -163,20 +186,35 @@ const SkillMatchDashboard = () => {
       <EmployerSideBar activePage="skillmatch" />
 
       {/* Main Content Area (White Card) */}
-      <div className="flex-1 bg-[#FEFEFF] rounded-t-[40px] overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.2)] mt-4 mx-4 mb-0 flex flex-col">
+      <div className="flex-1 bg-[#FEFEFF] rounded-t-[40px] overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.2)] mt-4 mb-0 flex flex-col">
         
         <main className="flex-1 p-8 overflow-y-auto">
             {!selectedJob ? (
                 // MASTER VIEW: Job Grid
                 <div className="max-w-7xl mx-auto">
-                   <h1 className="text-[24px] font-bold text-[#3C3B3B] mb-2 flex items-center gap-3">
-                      <CpuChipIcon className="w-8 h-8 text-[#9B1C31]" />
+                   <h1 className="text-[48px] font-bold text-[#9B1C31] mb-2 flex items-center gap-3">
+                      <CpuChipIcon className="w-12 h-12 text-[#9B1C31]" />
                       SkillMatch Intelligence
                    </h1>
-                   <p className="text-[#6B7280] mb-8 text-lg">Select a job to analyze candidate compatibility.</p>
+                   <p className="text-[#9B1C31] text-[22px] font-semibold mb-8">Select a job to analyze candidate compatibility or create a new posting.</p>
 
                    {loading ? (
-                       <div className="text-center py-20 text-gray-400">Loading jobs...</div>
+                       <div className="text-center py-20">
+                           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#9B1C31] mx-auto mb-4"></div>
+                           <p className="text-[#6B7280] text-lg font-semibold">Loading jobs...</p>
+                       </div>
+                   ) : jobs.length === 0 ? (
+                       <div className="text-center py-20">
+                           <BriefcaseIcon className="w-24 h-24 mx-auto mb-4 text-gray-300" />
+                           <p className="text-[#6B7280] text-xl font-semibold mb-2">No job postings yet</p>
+                           <p className="text-[#6B7280] text-base mb-6">Create your first job posting to start analyzing candidates</p>
+                           <button
+                               onClick={() => setShowModal(true)}
+                               className="px-8 py-3 bg-[#9B1C31] text-white font-bold rounded-lg hover:bg-[#7D1628] transition-colors"
+                           >
+                               Create First Job
+                           </button>
+                       </div>
                    ) : (
                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                            {jobs.map((job) => (
@@ -219,9 +257,10 @@ const SkillMatchDashboard = () => {
                      {/* Back Button */}
                      <button 
                         onClick={() => setSelectedJob(null)}
-                        className="flex items-center gap-2 text-[#9B1C31] font-bold hover:underline mb-4"
+                        className="flex items-center gap-2 text-[#9B1C31] font-bold hover:bg-[#9B1C31]/10 px-4 py-2 rounded-lg transition-colors mb-4"
                      >
-                         &larr; Back to Jobs
+                         <i className="bi bi-arrow-left text-xl"></i>
+                         <span>Back to Jobs</span>
                      </button>
 
                      {/* Job Header */}
@@ -260,7 +299,13 @@ const SkillMatchDashboard = () => {
                                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Merge Sorted by Score</span>
                             </div>
                             
-                            {applicants.map((app, index) => (
+                            {applicants.length === 0 ? (
+                                <div className="text-center py-12 bg-white rounded-[16px] border border-gray-200">
+                                    <CheckCircleIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                                    <p className="text-[#6B7280] text-lg font-semibold mb-2">No applicants yet</p>
+                                    <p className="text-[#6B7280] text-sm">Candidates who apply to this job will appear here</p>
+                                </div>
+                            ) : applicants.map((app, index) => (
                                 <div 
                                     key={app.id} 
                                     onClick={() => setSelectedApplicant(app)}
@@ -270,18 +315,21 @@ const SkillMatchDashboard = () => {
                                         : 'border-gray-200 bg-white hover:border-[#9B1C31]'
                                     }`}
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-[16px] shadow-sm ${
+                                    <div className="flex items-center gap-4 flex-1">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-[16px] shadow-sm flex-shrink-0 ${
                                             index < 3 ? 'bg-[#9B1C31] text-white' : 'bg-gray-100 text-gray-500'
                                         }`}>
                                             #{index + 1}
                                         </div>
-                                        <div>
+                                        <div className="flex-1 min-w-0">
                                             <div className="font-bold text-[18px] text-[#3C3B3B]">{app.name}</div>
-                                            <div className="text-xs text-gray-500 flex gap-2 mt-1">
+                                            <div className="text-xs text-gray-500 flex gap-2 mt-1 flex-wrap">
                                                 <span className="bg-gray-100 px-2 py-0.5 rounded">ID: {app.id}</span>
-                                                <span className={`px-2 py-0.5 rounded font-bold ${
-                                                    app.current_state === 'q_matched' ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'
+                                                <span className={`px-2 py-0.5 rounded font-bold uppercase ${
+                                                    app.current_state === 'hired' ? 'text-yellow-700 bg-yellow-100' :
+                                                    app.current_state === 'interviewing' ? 'text-blue-700 bg-blue-100' :
+                                                    app.current_state === 'q_matched' || app.current_state === 'applied' ? 'text-emerald-700 bg-emerald-100' : 
+                                                    'text-red-700 bg-red-100'
                                                 }`}>
                                                     {app.current_state}
                                                 </span>
@@ -289,7 +337,7 @@ const SkillMatchDashboard = () => {
                                         </div>
                                     </div>
                                     
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center flex-shrink-0 ml-4">
                                          {app.match_score > 0 ? (
                                              <div className={`px-4 py-2 rounded-[12px] font-bold text-[16px] shadow-sm ${getMatchColor(app.match_score)}`}>
                                                  {app.match_score}%
@@ -313,6 +361,22 @@ const SkillMatchDashboard = () => {
             )}
         </main>
       </div>
+
+      {/* Floating Add Button */}
+      <button
+        onClick={() => setShowModal(true)}
+        className="fixed bottom-8 right-8 w-16 h-16 bg-[#9B1C31] rounded-full shadow-lg flex items-center justify-center cursor-pointer transition hover:bg-[#7D1628] focus:outline-none z-50"
+      >
+        <span className="text-white text-[32px] leading-none" style={{ fontWeight: 200 }}>+</span>
+      </button>
+
+      {/* Job Post Modal */}
+      <JobNewPost
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={handleAddJob}
+        companyData={companyProfile}
+      />
     </div>
   );
 };

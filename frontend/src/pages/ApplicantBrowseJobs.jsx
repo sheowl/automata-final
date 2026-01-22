@@ -14,7 +14,7 @@ function ApplicantBrowseJobs() {
     const [firstName, setFirstName] = useState("");
     const [selectedModality, setSelectedModality] = useState(null);
     const [selectedWorkType, setSelectedWorkType] = useState(null);
-    const [selectedSort, setSelectedSort] = useState("best"); // Change default to "best"
+    const [selectedSort, setSelectedSort] = useState("recent"); // Default to recent
     const [sortedData, setSortedData] = useState([]);
     const [jobs, setJobs] = useState([]);
     const [loadingJobs, setLoadingJobs] = useState(true);
@@ -82,9 +82,7 @@ useEffect(() => {
         }
 
         // Apply sorting - handle both field names
-        if (selectedSort === "best") {
-            filtered = filtered.sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
-        } else if (selectedSort === "recent") {
+        if (selectedSort === "recent") {
             filtered = filtered.sort((a, b) => {
                 const dateA = new Date(a.created_at || a.createdAt || 0);
                 const dateB = new Date(b.created_at || b.createdAt || 0);
@@ -106,7 +104,6 @@ useEffect(() => {
     }, [jobs, selectedModality, selectedWorkType, selectedSort]);
 
     const sortOptions = [
-        { label: "Best Match", value: "best" },
         { label: "Most Recent", value: "recent" },
         { label: "Oldest First", value: "oldest" },
       ];
@@ -310,7 +307,6 @@ const mapJobDataForApplicant = (job) => {
                                 jobTitle={job.job_title || job.jobTitle}
                                 companyName={job.company_name || job.companyName}
                                 location={job.location}
-                                matchScore={job.match_score || 0}
                                 workSetup={job.setting || job.workSetup}
                                 employmentType={job.work_type || job.employmentType}
                                 description={job.description}

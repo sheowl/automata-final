@@ -72,9 +72,9 @@ const EmployerApplicants = () => {
   };
 
   const initializeJobSelection = async () => {
-    // If no job posts data is passed, redirect back to job posts page
+    // If no job posts data is passed, redirect back to skill match page
     if (!jobPostsData || jobPostsData.length === 0) {
-      navigate('/employerjobposts');
+      navigate('/skillmatch');
       return;
     }
 
