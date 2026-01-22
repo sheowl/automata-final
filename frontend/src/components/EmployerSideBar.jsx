@@ -4,6 +4,7 @@ import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 const navItems = [
     { icon: 'bi-house', label: 'Home Page', path: '/EmployerHomePage', key: 'homepage' },
     { icon: 'bi-clipboard2', label: 'Job Posts', path: '/EmployerJobPosts', key: 'jobposts' },
+    { icon: 'bi-cpu', label: 'SkillMatch', path: '/skillmatch', key: 'skillmatch' },
     { icon: 'bi-building-gear', label: 'Company', path: '/CompanyPage', key: 'company' },
 ];
 

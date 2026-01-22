@@ -18,6 +18,7 @@ import CompanyPage from "./pages/CompanyPage.jsx";
 import EditCompanyPage from "./components/EditCompanyPage.jsx";
 import ApplicantResume from "./components/ApplicantResume.jsx";
 import TugmaLandingPage from './pages/TugmaLandingPage.jsx';
+import SkillMatchDashboard from './pages/SkillMatchDashboard.jsx';
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
           <Route path="/edit-company-profile" element={<EditCompanyPage />} />
           <Route path="/applicantresume" element={<ApplicantResume />} />
           <Route path="/tugmalandingpage" element={<TugmaLandingPage />} />
+          <Route path="/skillmatch" element={<SkillMatchDashboard />} />
         </Routes>
       </div>
     </Router>
