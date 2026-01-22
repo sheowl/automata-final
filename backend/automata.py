@@ -89,9 +89,11 @@ class SkillValidationDFA:
         # "q_rejected (Trap State - missing a required tag)"
         # This implies if we finish and haven't matched, it is rejected.
         
-        if self.state != 'q_matched':
+        if self.state not in ['q_matched', 'q_partial']:
             self.state = 'q_rejected'
-            self.history.append("End of Input -> Missing Requirements -> Transition to q_rejected")
+            self.history.append("End of Input -> No Matches -> Transition to q_rejected")
+        elif self.state == 'q_partial':
+             self.history.append("End of Input -> Partial Match -> Retaining q_partial")
         
         return self.state
 

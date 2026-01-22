@@ -67,7 +67,8 @@ def run_dfa_matching():
             validation_logs = dfa.get_logs()
             
             # Calculate match score
-            if final_state == 'q_matched':
+            # Calculate match score
+            if final_state in ['q_matched', 'q_partial']:
                 # Score based on required + optional skills
                 required_matched = len([s for s in required_tags if s in applicant_skills])
                 optional_matched = len([s for s in optional_tags if s in applicant_skills])
@@ -77,9 +78,11 @@ def run_dfa_matching():
                 optional_score = (optional_matched / len(optional_tags)) * 40 if optional_tags else 40
                 
                 match_score = int(required_score + optional_score)
-                new_state = 'q_matched'
+                new_state = final_state
                 matched_count += 1
-                print(f"    >> MATCHED (Score: {match_score}%)")
+                
+                match_type = "MATCHED" if final_state == 'q_matched' else "PARTIALLY MATCHED"
+                print(f"    >> {match_type} (Score: {match_score}%) - State: {final_state}")
             else:
                 match_score = 0
                 new_state = 'q_rejected'

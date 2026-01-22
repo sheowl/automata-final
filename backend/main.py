@@ -36,8 +36,8 @@ def run_pipeline():
             logs = dfa.get_logs()
             
             score = 0
-            # B. Score if Matched
-            if state == 'q_matched':
+            # B. Score if Matched or Partially Matched
+            if state in ['q_matched', 'q_partial']:
                 matcher = TagMatcher(app['skill_tags_json'], all_job_tags)
                 score = matcher.calculate_score()
                 candidates_to_rank.append({

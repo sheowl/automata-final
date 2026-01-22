@@ -38,6 +38,8 @@ def test_dfa():
         
         if final_state == 'q_matched':
             print(">> STATUS: MATCHED (Ready for Scoring)")
+        elif final_state == 'q_partial':
+             print(">> STATUS: PARTIALLY MATCHED (Review Needed)")
         else:
             print(">> STATUS: REJECTED")
 

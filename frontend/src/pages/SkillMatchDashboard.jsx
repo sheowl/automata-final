@@ -30,8 +30,8 @@ const SkillMatchDashboard = () => {
       let newState = selectedApplicant.current_state;
       let logEntry = "";
       
-      // Normalize 'q_matched' to 'applied' logic
-      const currentState = newState === 'q_matched' ? 'applied' : newState;
+      // Normalize 'q_matched' or 'q_partial' to 'applied' logic for recruitment purposes
+      const currentState = (newState === 'q_matched' || newState === 'q_partial') ? 'applied' : newState;
 
       if (currentState === 'applied') {
           if (action === 'invite') {
@@ -329,6 +329,7 @@ const SkillMatchDashboard = () => {
                                                     app.current_state === 'hired' ? 'text-yellow-700 bg-yellow-100' :
                                                     app.current_state === 'interviewing' ? 'text-blue-700 bg-blue-100' :
                                                     app.current_state === 'q_matched' || app.current_state === 'applied' ? 'text-emerald-700 bg-emerald-100' : 
+                                                    app.current_state === 'q_partial' ? 'text-amber-700 bg-amber-100' :
                                                     'text-red-700 bg-red-100'
                                                 }`}>
                                                     {app.current_state}
@@ -462,6 +463,11 @@ const ValidationConsole = ({ applicant, job, onAction }) => {
                              <div className="text-[10px] uppercase tracking-[0.2em] mb-1">Status</div>
                              <div className="text-xl font-black">MATCHED</div>
                         </div>
+                    ) : applicant.current_state === 'q_partial' ? (
+                        <div className="w-full bg-[#78350F] border border-[#F59E0B] text-[#FCD34D] rounded p-3 text-center">
+                             <div className="text-[10px] uppercase tracking-[0.2em] mb-1">Status</div>
+                             <div className="text-xl font-black">PARTIALLY MATCHED</div>
+                        </div>
                     ) : applicant.current_state === 'interviewing' ? (
                          <div className="w-full bg-blue-900 border border-blue-500 text-blue-300 rounded p-3 text-center">
                              <div className="text-[10px] uppercase tracking-[0.2em] mb-1">Status</div>
@@ -482,7 +488,7 @@ const ValidationConsole = ({ applicant, job, onAction }) => {
 
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-3">
-                    {(applicant.current_state === 'q_matched' || applicant.current_state === 'applied') && (
+                    {(applicant.current_state === 'q_matched' || applicant.current_state === 'q_partial' || applicant.current_state === 'applied') && (
                         <>
                             <button 
                                 onClick={() => onAction('invite')}
